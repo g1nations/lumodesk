@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Tab } from '@/components/ui/tabs';
 import UrlInput from '@/components/UrlInput';
 import ApiKeySettings from '@/components/ApiKeySettings';
 import ChannelAnalysis from '@/components/ChannelAnalysis';
@@ -9,9 +8,10 @@ import ErrorState from '@/components/ErrorState';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { BarChart, Film, Smartphone } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation } from '@tanstack/react-query';
 import { API_KEY_STORAGE_KEY } from '@/lib/youtube';
 import { useToast } from '@/hooks/use-toast';
+import { apiRequest } from '@/lib/queryClient';
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<string>('general');
@@ -19,17 +19,39 @@ export default function Home() {
   const [apiKey, setApiKey] = useState<string>(
     localStorage.getItem(API_KEY_STORAGE_KEY) || ''
   );
+  const [analysisData, setAnalysisData] = useState<any>(null);
   const { toast } = useToast();
 
   const {
-    data: analysisData,
+    mutate,
+    isPending: isLoading,
     error,
-    isLoading,
     isError,
-    refetch,
-  } = useQuery({
-    queryKey: ['/api/analyze', youtubeUrl, apiKey, activeTab],
-    enabled: false,
+    reset
+  } = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest('POST', '/api/analyze', {
+        url: youtubeUrl,
+        apiKey: apiKey
+      });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setAnalysisData(data);
+      toast({
+        title: 'Analysis Complete',
+        description: 'YouTube analysis has been successfully completed.',
+        duration: 3000,
+      });
+    },
+    onError: (error) => {
+      console.error('Analysis error:', error);
+      toast({
+        title: 'Analysis Error',
+        description: (error as Error).message || 'An error occurred during analysis',
+        variant: 'destructive',
+      });
+    }
   });
 
   const handleAnalyze = async () => {
@@ -50,13 +72,14 @@ export default function Home() {
       });
       return;
     }
-
-    await refetch();
+    
+    setAnalysisData(null);
+    mutate();
   };
 
   const renderResults = () => {
     if (isLoading) return null;
-    if (isError) return <ErrorState message={(error as Error).message} onRetry={() => setYoutubeUrl('')} />;
+    if (isError) return <ErrorState message={(error as Error).message} onRetry={() => { reset(); setYoutubeUrl(''); }} />;
     if (!analysisData) return null;
 
     // Determine what content to show based on analysis result type
