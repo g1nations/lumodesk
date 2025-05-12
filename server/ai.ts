@@ -80,9 +80,10 @@ Format your response with clear sections and bullet points. Be specific and acti
  * 
  * @param caption 영상 자막 텍스트
  * @param apiKey OpenRouter API 키
+ * @param model 사용할 모델 (선택적)
  * @returns 패러디 텍스트
  */
-export async function generateParody(caption: string, apiKey: string) {
+export async function generateParody(caption: string, apiKey: string, model?: string) {
   const prompt = `
 Create a humorous parody version of this YouTube Shorts script. Make it entertaining and slightly exaggerated while keeping the same basic structure and topic.
 
@@ -100,5 +101,5 @@ Requirements:
 Create a parody that could actually be used as an alternative script for a humorous remake.
 `;
 
-  return await getAiResponse(prompt, apiKey);
+  return await getAiResponse(prompt, apiKey, model);
 }
