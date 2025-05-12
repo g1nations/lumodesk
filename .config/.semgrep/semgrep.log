@@ -1,0 +1,113 @@
+2025-05-12 03:41:41,224 - semgrep.notifications - WARNING - METRICS: Using configs from the Registry (like --config=p/ci) reports pseudonymous rule metrics to semgrep.dev.
+To disable Registry rule metrics, use "--metrics=off".
+Using configs only from local files (like --config=xyz.yml) does not enable metrics.
+
+More information: https://semgrep.dev/docs/metrics
+
+2025-05-12 03:41:41,225 - semgrep.run_scan - DEBUG - semgrep version 1.2.0
+2025-05-12 03:41:41,228 - semgrep.git - DEBUG - Failed to get project url from 'git ls-remote': Command failed with exit code: 128
+-----
+Command failed with output:
+fatal: No remote configured to list refs from.
+
+
+Failed to run 'git ls-remote --get-url'. Possible reasons:
+
+- the git binary is not available
+- the current working directory is not a git repository
+- the baseline commit is not a parent of the current commit
+    (if you are running through semgrep-app, check if you are setting `SEMGREP_BRANCH` or `SEMGREP_BASELINE_COMMIT` properly)
+- the current working directory is not marked as safe
+    (fix with `git config --global --add safe.directory $(pwd)`)
+
+Try running the command yourself to debug the issue.
+2025-05-12 03:41:41,229 - semgrep.config_resolver - DEBUG - Loading local config from /home/runner/workspace/.config/.semgrep/semgrep_rules.json
+2025-05-12 03:41:41,231 - semgrep.config_resolver - DEBUG - Done loading local config from /home/runner/workspace/.config/.semgrep/semgrep_rules.json
+2025-05-12 03:41:41,235 - semgrep.config_resolver - DEBUG - Saving rules to /tmp/semgrep-o5hoa2rp.rules
+2025-05-12 03:41:41,544 - semgrep.semgrep_core - DEBUG - Failed to open resource semgrep-core-proprietary: [Errno 2] No such file or directory: '/tmp/_MEISOAEL3/semgrep/bin/semgrep-core-proprietary'.
+2025-05-12 03:41:42,365 - semgrep.rule_lang - DEBUG - semgrep-core validation response: valid=True
+2025-05-12 03:41:42,365 - semgrep.rule_lang - DEBUG - semgrep-core validation succeeded
+2025-05-12 03:41:42,366 - semgrep.rule_lang - DEBUG - RPC validation succeeded
+2025-05-12 03:41:42,366 - semgrep.config_resolver - DEBUG - loaded 1 configs in 1.1372432708740234
+2025-05-12 03:41:42,602 - semgrep.run_scan - VERBOSE - running 1250 rules from 1 config /home/runner/workspace/.config/.semgrep/semgrep_rules.json_0
+2025-05-12 03:41:42,602 - semgrep.run_scan - VERBOSE - No .semgrepignore found. Using default .semgrepignore rules. See the docs for the list of default ignores: https://semgrep.dev/docs/cli-usage/#ignore-files
+2025-05-12 03:41:42,605 - semgrep.run_scan - VERBOSE - Rules:
+2025-05-12 03:41:42,605 - semgrep.run_scan - VERBOSE - <SKIPPED DATA (too many entries; use --max-log-list-entries)>
+2025-05-12 03:41:43,028 - semgrep.core_runner - DEBUG - Passing whole rules directly to semgrep_core
+2025-05-12 03:41:43,233 - semgrep.core_runner - DEBUG - Running Semgrep engine with command:
+2025-05-12 03:41:43,233 - semgrep.core_runner - DEBUG - /tmp/_MEISOAEL3/semgrep/bin/opengrep-core -json -rules /tmp/tmpzn7os097.json -j 8 -targets /tmp/tmpabx8bf0i -timeout 5 -timeout_threshold 3 -max_memory 0 -fast
+2025-05-12 03:41:47,085 - semgrep.core_runner - DEBUG - --- semgrep-core stderr ---
+[00.07][[34mINFO[0m]: Executed as: /tmp/_MEISOAEL3/semgrep/bin/opengrep-core -json -rules /tmp/tmpzn7os097.json -j 8 -targets /tmp/tmpabx8bf0i -timeout 5 -timeout_threshold 3 -max_memory 0 -fast
+[00.07][[34mINFO[0m]: Version: 1.2.0
+[00.07][[34mINFO[0m]: Parsing rules in /tmp/tmpzn7os097.json
+[00.91][[34mINFO[0m]: scan: processing 258 files (skipping 0), with 487 rules (skipping 0 )
+[02.13][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.lang.security.audit.detect-non-literal-require file: server/routes.ts func: registerRoutes:8991]
+[0m[02.28][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.express.security.injection.tainted-sql-string file: server/routes.ts func: registerRoutes:8991]
+[0m[02.49][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.express.security.injection.raw-html-format file: server/routes.ts func: registerRoutes:8991]
+[0m[02.87][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.express.security.audit.xss.direct-response-write file: server/routes.ts func: registerRoutes:8991]
+[0m[03.24][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.express.security.x-frame-options-misconfiguration file: server/routes.ts func: registerRoutes:8991]
+[0m[03.42][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.express.security.require-request file: server/routes.ts func: registerRoutes:8991]
+[0m[03.67][[33mWARNING[0m]: Fixpoint timeout while performing taint analysis [rule: config..semgrep.vendored-rules.javascript.express.security.cors-misconfiguration file: server/routes.ts func: registerRoutes:8991]
+[0m[03.81][[34mINFO[0m]: Custom ignore pattern: None
+[03.81][[34mINFO[0m]: Custom ignore pattern: None
+--- end semgrep-core stderr ---
+2025-05-12 03:41:47,092 - semgrep.rule_match - DEBUG - match_key = ('', PosixPath('client/index.html'), 'config..semgrep.vendored-rules.html.security.audit.missing-integrity') match_id = 0ee74fd49637bebe183eca7188dbde26e386314e62cc2e7ba1ee60b377b638243fcd84e6c6fa04886198ccacfa6a711bfbcc61a28f9ddc913d5b3c53083cbc90_0
+2025-05-12 03:41:47,093 - semgrep.rule_match - DEBUG - match_key = (' type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js" (?is).*integrity= (google-analytics\\.com|fonts\\.googleapis\\.com|fonts\\.gstatic\\.com|googletagmanager\\.com) .*rel\\s*=\\s*[\'"]?preconnect.* href="... :// ..." href="//..." href=\'... :// ...\' href=\'//...\' src="... :// ..." src="//..." src=\'... :// ...\' src=\'//...\' <link  type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js" > <script  type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js" >...</script>', PosixPath('client/index.html'), 'config..semgrep.vendored-rules.html.security.audit.missing-integrity') match_id = 0728b64e224596592d04447ba8a642ff94e1fb9fcc07be26d49dc7e7f6898e638ad16ffcaca086932c58f4c6400fe32603323afef02cf9bfebcb0e4a53562a40_0
+2025-05-12 03:41:47,094 - semgrep.rule_match - DEBUG - match_key = (' type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js" (?is).*integrity= (google-analytics\\.com|fonts\\.googleapis\\.com|fonts\\.gstatic\\.com|googletagmanager\\.com) .*rel\\s*=\\s*[\'"]?preconnect.* href="... :// ..." href="//..." href=\'... :// ...\' href=\'//...\' src="... :// ..." src="//..." src=\'... :// ...\' src=\'//...\' <link  type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js" > <script  type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js" >...</script>', PosixPath('client/index.html'), 'config..semgrep.vendored-rules.html.security.audit.missing-integrity') match_id = 0728b64e224596592d04447ba8a642ff94e1fb9fcc07be26d49dc7e7f6898e638ad16ffcaca086932c58f4c6400fe32603323afef02cf9bfebcb0e4a53562a40_0
+2025-05-12 03:41:47,094 - semgrep.rule_match - DEBUG - match_key = (' type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js" (?is).*integrity= (google-analytics\\.com|fonts\\.googleapis\\.com|fonts\\.gstatic\\.com|googletagmanager\\.com) .*rel\\s*=\\s*[\'"]?preconnect.* href="... :// ..." href="//..." href=\'... :// ...\' href=\'//...\' src="... :// ..." src="//..." src=\'... :// ...\' src=\'//...\' <link  type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js" > <script  type="text/javascript" src="https://replit.com/public/js/replit-dev-banner.js" >...</script>', PosixPath('client/index.html'), 'config..semgrep.vendored-rules.html.security.audit.missing-integrity') match_id = 0728b64e224596592d04447ba8a642ff94e1fb9fcc07be26d49dc7e7f6898e638ad16ffcaca086932c58f4c6400fe32603323afef02cf9bfebcb0e4a53562a40_0
+2025-05-12 03:41:47,095 - semgrep.rule_match - DEBUG - match_key = ('', PosixPath('server/youtube.ts'), 'config..semgrep.vendored-rules.javascript.jquery.security.audit.jquery-insecure-selector') match_id = 557a585b566b11c3ca0ec4464c880147b04921b2ec371c9c37740b4d098569d9616cfc26ffdffe7806c12f47d177ee485489b87fde60f9d21f343ed0b8d603f2_0
+2025-05-12 03:41:47,095 - semgrep.rule_match - DEBUG - match_key = ('$("..." + (<... elem ...>))\n $((<... elem ...>) + "...")\n $(<... elem ...>)\n $JQUERY.each(function($INDEX, elem) {\n  ...\n})\n elem function $FUNC(..., elem, ...) {\n  ...\n}\n function $FUNC(...,$Z,...) {\n  ...\n  elem = <... $Z ...>;\n  ...\n}\n function (..., elem, ...) {\n  ...\n}\n function (...,$Z,...) {\n  ...\n  elem = <... $Z ...>;\n  ...\n}\n $(<... location ...>)\n $(<... window ...>)\n $X $X = <... location ...>;\n...\n$(<... $X ...>);\n $X $X = <... window ...>;\n...\n$(<... $X ...>);\n $(document)\n $(this)\n $(window)\n', PosixPath('server/youtube.ts'), 'config..semgrep.vendored-rules.javascript.jquery.security.audit.jquery-insecure-selector') match_id = 08458278d397f8fab827135d9729e47d19e2133a3e5a0d5bb823a253d5a8326e89cb70cb0f567ed666a67a3c70b5b8f68e63281474af82fdc2119c61aecb910c_0
+2025-05-12 03:41:47,096 - semgrep.rule_match - DEBUG - match_key = ('$("..." + (<... elem ...>))\n $((<... elem ...>) + "...")\n $(<... elem ...>)\n $JQUERY.each(function($INDEX, elem) {\n  ...\n})\n elem function $FUNC(..., elem, ...) {\n  ...\n}\n function $FUNC(...,$Z,...) {\n  ...\n  elem = <... $Z ...>;\n  ...\n}\n function (..., elem, ...) {\n  ...\n}\n function (...,$Z,...) {\n  ...\n  elem = <... $Z ...>;\n  ...\n}\n $(<... location ...>)\n $(<... window ...>)\n $X $X = <... location ...>;\n...\n$(<... $X ...>);\n $X $X = <... window ...>;\n...\n$(<... $X ...>);\n $(document)\n $(this)\n $(window)\n', PosixPath('server/youtube.ts'), 'config..semgrep.vendored-rules.javascript.jquery.security.audit.jquery-insecure-selector') match_id = 08458278d397f8fab827135d9729e47d19e2133a3e5a0d5bb823a253d5a8326e89cb70cb0f567ed666a67a3c70b5b8f68e63281474af82fdc2119c61aecb910c_0
+2025-05-12 03:41:47,096 - semgrep.rule_match - DEBUG - match_key = ('$("..." + (<... elem ...>))\n $((<... elem ...>) + "...")\n $(<... elem ...>)\n $JQUERY.each(function($INDEX, elem) {\n  ...\n})\n elem function $FUNC(..., elem, ...) {\n  ...\n}\n function $FUNC(...,$Z,...) {\n  ...\n  elem = <... $Z ...>;\n  ...\n}\n function (..., elem, ...) {\n  ...\n}\n function (...,$Z,...) {\n  ...\n  elem = <... $Z ...>;\n  ...\n}\n $(<... location ...>)\n $(<... window ...>)\n $X $X = <... location ...>;\n...\n$(<... $X ...>);\n $X $X = <... window ...>;\n...\n$(<... $X ...>);\n $(document)\n $(this)\n $(window)\n', PosixPath('server/youtube.ts'), 'config..semgrep.vendored-rules.javascript.jquery.security.audit.jquery-insecure-selector') match_id = 08458278d397f8fab827135d9729e47d19e2133a3e5a0d5bb823a253d5a8326e89cb70cb0f567ed666a67a3c70b5b8f68e63281474af82fdc2119c61aecb910c_0
+2025-05-12 03:41:47,099 - semgrep.core_runner - DEBUG - semgrep ran in 0:00:04.070552 on 89 files
+2025-05-12 03:41:47,101 - semgrep.core_runner - DEBUG - findings summary: 2 warning, 0 error, 0 info
+2025-05-12 03:41:47,105 - semgrep.app.auth - DEBUG - Getting API token from settings file
+2025-05-12 03:41:47,105 - semgrep.app.auth - DEBUG - No API token found in settings file
+2025-05-12 03:41:47,105 - semgrep.semgrep_core - DEBUG - Failed to open resource semgrep-core-proprietary: [Errno 2] No such file or directory: '/tmp/_MEISOAEL3/semgrep/bin/semgrep-core-proprietary'.
+2025-05-12 03:41:47,211 - semgrep.output - VERBOSE - 
+========================================
+Files skipped:
+========================================
+
+  Always skipped by Opengrep:
+
+   • <none>
+
+  Skipped by .gitignore:
+  (Disable by passing --no-git-ignore)
+
+   • <all files not listed by `git ls-files` were skipped>
+
+  Skipped by .semgrepignore:
+  - https://semgrep.dev/docs/ignoring-files-folders-code/#understand-semgrep-defaults
+
+   • <none>
+
+  Skipped by --include patterns:
+
+   • <none>
+
+  Skipped by --exclude patterns:
+
+   • <none>
+
+  Files skipped due to insufficient read permissions:
+
+   • <none>
+
+  Skipped by limiting to files smaller than 1000000 bytes:
+  (Adjust with the --max-target-bytes flag)
+
+   • <none>
+
+  Partially analyzed due to parsing or internal Opengrep errors
+
+   • tailwind.config.ts (1 lines skipped)
+
+2025-05-12 03:41:47,212 - semgrep.output - INFO - Some files were skipped or only partially analyzed.
+  Scan was limited to files tracked by git.
+  Partially scanned: 1 files only partially analyzed due to parsing or internal Opengrep errors
+
+Ran 443 rules on 89 files: 2 findings.
+2025-05-12 03:41:47,212 - semgrep.app.version - DEBUG - Version cache does not exist
+2025-05-12 03:41:47,236 - semgrep.metrics - VERBOSE - Not sending pseudonymous metrics since metrics are configured to OFF and registry usage is False
