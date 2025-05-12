@@ -560,7 +560,12 @@ export default function ChannelAnalysis({ data, hideSEOAnalysis = false }: Chann
                 <div className="bg-yellow-50 p-4 rounded-lg">
                   <div className="space-y-4">
                     <div className="bg-white p-3 rounded shadow-sm">
-                      <h4 className="font-medium text-gray-700">제목 최적화</h4>
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-medium text-gray-700">제목 최적화</h4>
+                        <div className="px-2 py-1 bg-yellow-100 rounded-md text-sm font-bold text-yellow-700">
+                          {data.seoAnalysis.titleOptimization.score}/5
+                        </div>
+                      </div>
                       <div className="flex items-center mt-2">
                         <div className="w-16 text-center">
                           <span className="text-lg font-bold">{data.seoAnalysis.titleOptimization.average}</span>
@@ -573,7 +578,12 @@ export default function ChannelAnalysis({ data, hideSEOAnalysis = false }: Chann
                     </div>
                     
                     <div className="bg-white p-3 rounded shadow-sm">
-                      <h4 className="font-medium text-gray-700">설명 최적화</h4>
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-medium text-gray-700">설명 최적화</h4>
+                        <div className="px-2 py-1 bg-yellow-100 rounded-md text-sm font-bold text-yellow-700">
+                          {data.seoAnalysis.descriptionOptimization.score}/5
+                        </div>
+                      </div>
                       <div className="flex items-center mt-2">
                         <div className="w-16 text-center">
                           <span className="text-lg font-bold">{data.seoAnalysis.descriptionOptimization.average}</span>
@@ -586,7 +596,12 @@ export default function ChannelAnalysis({ data, hideSEOAnalysis = false }: Chann
                     </div>
                     
                     <div className="bg-white p-3 rounded shadow-sm">
-                      <h4 className="font-medium text-gray-700">해시태그 활용</h4>
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-medium text-gray-700">해시태그 활용</h4>
+                        <div className="px-2 py-1 bg-yellow-100 rounded-md text-sm font-bold text-yellow-700">
+                          {data.seoAnalysis.hashtagUsage.score}/5
+                        </div>
+                      </div>
                       <div className="flex items-center mt-2">
                         <div className="w-16 text-center">
                           <span className="text-lg font-bold">{data.seoAnalysis.hashtagUsage.average}</span>
@@ -599,7 +614,12 @@ export default function ChannelAnalysis({ data, hideSEOAnalysis = false }: Chann
                     </div>
                     
                     <div className="bg-white p-3 rounded shadow-sm">
-                      <h4 className="font-medium text-gray-700">키워드 일관성</h4>
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-medium text-gray-700">키워드 일관성</h4>
+                        <div className="px-2 py-1 bg-yellow-100 rounded-md text-sm font-bold text-yellow-700">
+                          {data.seoAnalysis.keywordConsistency.score}/5
+                        </div>
+                      </div>
                       <div className="mt-2">
                         <p className="text-sm text-gray-600 mb-2">{data.seoAnalysis.keywordConsistency.recommendation}</p>
                         <div className="flex flex-wrap gap-2">
@@ -613,7 +633,12 @@ export default function ChannelAnalysis({ data, hideSEOAnalysis = false }: Chann
                     </div>
                     
                     <div className="bg-white p-3 rounded shadow-sm">
-                      <h4 className="font-medium text-gray-700">업로드 전략</h4>
+                      <div className="flex justify-between items-center">
+                        <h4 className="font-medium text-gray-700">업로드 전략</h4>
+                        <div className="px-2 py-1 bg-yellow-100 rounded-md text-sm font-bold text-yellow-700">
+                          {data.seoAnalysis.uploadStrategy.score}/5
+                        </div>
+                      </div>
                       <div className="flex items-center mt-2">
                         <div className="w-24 text-center">
                           <span className="text-lg font-bold">{data.seoAnalysis.uploadStrategy.frequency}</span>
