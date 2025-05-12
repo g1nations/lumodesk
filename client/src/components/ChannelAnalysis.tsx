@@ -81,13 +81,7 @@ export default function ChannelAnalysis({ data, hideSEOAnalysis = false }: Chann
   // Popular hashtags
   const hashtags = data.popularHashtags || [];
 
-  // Data for pie chart - 사용자 피드백에 따라 Shorts 60개, Regular 6개로 표시
-  // 비율은 Shorts 91%, Regular 9%
-  const totalContent = shortCount + regularCount;
-  const contentTypeData = [
-    { name: 'Regular', value: regularCount, color: 'hsl(var(--chart-1))' },
-    { name: 'Shorts', value: shortCount, color: 'hsl(var(--chart-2))' }
-  ];
+  // 그래프 제거 - 사용자 요청
 
   return (
     <div className="mb-8">
@@ -167,34 +161,6 @@ export default function ChannelAnalysis({ data, hideSEOAnalysis = false }: Chann
             
             {/* Content Breakdown */}
             <div className="flex flex-col lg:flex-row gap-6">
-              {/* Video Types */}
-              <div className="flex-1">
-                <h3 className="text-sm font-medium text-gray-700 uppercase mb-3">Content Types</h3>
-                <div className="aspect-square max-w-[200px] mx-auto">
-                  {(regularCount > 0 || shortCount > 0) && (
-                    <Chart
-                      type="pie"
-                      data={contentTypeData}
-                      options={{
-                        innerRadius: 50,
-                        outerRadius: 80,
-                        label: false,
-                      }}
-                    />
-                  )}
-                  <div className="flex justify-center mt-3 text-sm">
-                    <span className="flex items-center mr-3">
-                      <span className="w-3 h-3 bg-[hsl(var(--chart-1))] inline-block rounded-sm mr-1"></span> 
-                      Regular ({Math.round(regularCount / totalContent * 100) || 0}%)
-                    </span>
-                    <span className="flex items-center">
-                      <span className="w-3 h-3 bg-[hsl(var(--chart-2))] inline-block rounded-sm mr-1"></span> 
-                      Shorts ({Math.round(shortCount / totalContent * 100) || 0}%)
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
               {/* Popular Tags */}
               <div className="flex-1">
                 <h3 className="text-sm font-medium text-gray-700 uppercase mb-3">Popular Hashtags</h3>
