@@ -1,4 +1,4 @@
-import React from 'react';
+// 스피너 컴포넌트
 
 interface SpinnerProps {
   size?: 'sm' | 'md' | 'lg';

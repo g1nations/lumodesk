@@ -9,8 +9,27 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import { Spinner } from './Spinner';
 import { useToast } from '@/hooks/use-toast';
+
+// 스피너 컴포넌트
+interface SpinnerProps {
+  size?: 'sm' | 'md' | 'lg';
+  className?: string;
+}
+
+function Spinner({ size = 'md', className = '' }: SpinnerProps) {
+  const sizeClass = {
+    sm: 'w-4 h-4 border-2',
+    md: 'w-6 h-6 border-2',
+    lg: 'w-10 h-10 border-3'
+  };
+
+  return (
+    <div className={`inline-block animate-spin rounded-full border-solid border-current border-t-transparent ${sizeClass[size]} ${className}`} role="status">
+      <span className="sr-only">Loading...</span>
+    </div>
+  );
+}
 
 interface IndividualShortAnalysisProps {
   data: any;
@@ -310,9 +329,30 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
             </div>
             
             {/* SEO Analysis */}
-            {data.seoAnalysis && (
-              <div className="mt-6 p-5 bg-yellow-50 rounded-lg">
-                <h3 className="text-lg font-bold mb-3">SEO 분석</h3>
+            <div className="mt-6 p-5 bg-yellow-50 rounded-lg">
+              <div className="flex justify-between items-center mb-3">
+                <h3 className="text-lg font-bold">SEO 분석</h3>
+                {!isLoadingSeo && !aiSeoAnalysis && (
+                  <Button 
+                    variant="outline"
+                    size="sm"
+                    onClick={performAiSeoAnalysis}
+                    className="flex items-center text-xs"
+                  >
+                    <Bot className="w-3 h-3 mr-1" />
+                    AI 상세 분석
+                  </Button>
+                )}
+              </div>
+              
+              {isLoadingSeo && (
+                <div className="flex items-center justify-center p-6 bg-white rounded-lg">
+                  <Spinner size="md" className="text-yellow-500 mr-3" />
+                  <span>AI로 SEO 분석 중...</span>
+                </div>
+              )}
+              
+              {data.seoAnalysis && !aiSeoAnalysis && !isLoadingSeo && (
                 <div className="space-y-3">
                   <div className="flex items-center bg-white p-3 rounded-md">
                     <div className="flex-shrink-0 w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
@@ -349,6 +389,57 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
                     <p className="text-sm text-gray-600 mt-1">{data.seoAnalysis.keywordRecommendation}</p>
                   </div>
                 </div>
+              )}
+              
+              {aiSeoAnalysis && !isLoadingSeo && (
+                <div className="bg-white p-4 rounded-lg whitespace-pre-wrap text-sm">
+                  {aiSeoAnalysis}
+                </div>
+              )}
+            </div>
+            
+            {/* AI 캡션 패러디 섹션 */}
+            {captionsAvailable && (
+              <div className="mt-6 p-5 bg-purple-50 rounded-lg">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-lg font-bold">캡션 패러디</h3>
+                  {!isLoadingParody && !aiParody && (
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      onClick={generateCaptionParody}
+                      className="flex items-center text-xs"
+                    >
+                      <Sparkles className="w-3 h-3 mr-1" />
+                      AI 패러디 생성
+                    </Button>
+                  )}
+                </div>
+                
+                {isLoadingParody && (
+                  <div className="flex items-center justify-center p-6 bg-white rounded-lg">
+                    <Spinner size="md" className="text-purple-500 mr-3" />
+                    <span>AI로 패러디 생성 중...</span>
+                  </div>
+                )}
+                
+                {aiParody && !isLoadingParody && (
+                  <div className="bg-white p-4 rounded-lg">
+                    <h4 className="font-semibold mb-2 flex items-center text-purple-700">
+                      <Sparkles className="w-4 h-4 mr-1" />
+                      패러디 버전:
+                    </h4>
+                    <div className="whitespace-pre-wrap text-sm border-l-4 border-purple-300 pl-3 py-1">
+                      {aiParody}
+                    </div>
+                  </div>
+                )}
+                
+                {!aiParody && !isLoadingParody && (
+                  <div className="bg-white p-4 rounded-lg text-sm text-gray-500 text-center">
+                    AI 패러디 생성을 클릭하여 이 쇼츠의 재미있는 패러디 스크립트를 만들어보세요!
+                  </div>
+                )}
               </div>
             )}
           </div>
