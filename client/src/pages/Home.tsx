@@ -103,7 +103,33 @@ export default function Home() {
         return () => clearTimeout(timer);
       }
     }
-  }, [location, apiKey]);
+    
+    // 저장된 분석 결과가 있는지 확인
+    const savedAnalysis = localStorage.getItem('current-analysis');
+    if (savedAnalysis) {
+      try {
+        setAnalysisData(JSON.parse(savedAnalysis));
+        // 분석 결과를 불러온 후 초기화
+        localStorage.removeItem('current-analysis');
+      } catch (e) {
+        console.error('저장된 분석 결과 처리 중 오류:', e);
+      }
+    }
+  }, [location, apiKey, handleAnalyze]);
+  
+  // 개별 쇼츠 분석 이벤트 리스너
+  useEffect(() => {
+    const handleShortAnalysis = (event: any) => {
+      if (event.detail?.data) {
+        setAnalysisData(event.detail.data);
+      }
+    };
+    
+    window.addEventListener('short-analysis', handleShortAnalysis);
+    return () => {
+      window.removeEventListener('short-analysis', handleShortAnalysis);
+    };
+  }, []);
 
   const renderResults = () => {
     if (isLoading) return null;

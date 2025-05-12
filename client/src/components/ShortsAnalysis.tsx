@@ -29,6 +29,33 @@ export default function ShortsAnalysis({ data }: ShortsAnalysisProps) {
     .sort((a, b) => parseInt(b.viewCount || 0) - parseInt(a.viewCount || 0))
     .slice(0, 10);
 
+  // 개별 쇼츠 분석 함수
+  const analyzeShort = (shortId: string) => {
+    // URL 입력칸에 해당 쇼츠 URL 자동 입력
+    const shortsUrl = `https://www.youtube.com/shorts/${shortId}`;
+    const apiKey = localStorage.getItem('mocktube-api-key');
+    
+    if (!apiKey) {
+      alert('YouTube API 키가 설정되어 있지 않습니다. 설정에서 API 키를 입력해주세요.');
+      return;
+    }
+    
+    // 쇼츠 URL 분석 API 직접 호출
+    fetch('/api/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ url: shortsUrl, apiKey })
+    })
+    .then(res => res.json())
+    .then(data => {
+      // localStorage에 분석 결과 저장
+      localStorage.setItem('current-analysis', JSON.stringify(data));
+      // 이벤트 발생
+      window.dispatchEvent(new CustomEvent('shorts-analyzed', { detail: data }));
+    })
+    .catch(err => console.error('Error analyzing short:', err));
+  };
+
   return (
     <div className="mb-8">
       <h2 className="text-xl font-bold mb-4">Shorts Analysis</h2>
@@ -60,15 +87,10 @@ export default function ShortsAnalysis({ data }: ShortsAnalysisProps) {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {topShorts.map((short: any, index: number) => (
-              <a 
-                href={`https://www.youtube.com/shorts/${short.id}`}
-                target="_blank" 
-                rel="noopener noreferrer"
-                onClick={(e) => {
-                  e.preventDefault();
-                  window.location.href = `/analyze?url=https://www.youtube.com/shorts/${short.id}`;
-                }}
-                className="block border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+              <div 
+                key={short.id || index}
+                className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => analyzeShort(short.id)}
               >
                 <div className="aspect-[9/16] relative bg-gray-100">
                   {short.thumbnails?.high?.url && (
@@ -117,7 +139,7 @@ export default function ShortsAnalysis({ data }: ShortsAnalysisProps) {
                     </div>
                   )}
                 </div>
-              </a>
+              </div>
             ))}
           </div>
           
