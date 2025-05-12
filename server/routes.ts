@@ -104,23 +104,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const seoAnalysis = {
           titleOptimization: {
             average: Math.round(titleLengths.reduce((a, b) => a + b, 0) / titleLengths.length),
-            recommendation: "YouTube 검색을 위한 최적 제목 길이는 60-70자입니다. 제목에 핵심 키워드를 포함하세요."
+            recommendation: "YouTube 검색을 위한 최적 제목 길이는 60-70자입니다. 제목에 핵심 키워드를 포함하세요.",
+            score: getTitleScore(titleLengths) // 제목 길이 기반 점수 (0-5)
           },
           descriptionOptimization: {
             average: Math.round(descriptionLengths.reduce((a, b) => a + b, 0) / descriptionLengths.length),
-            recommendation: "설명란은 최소 200자 이상이 권장됩니다. 핵심 키워드를 2-3회 포함하고 자연스럽게 작성하세요."
+            recommendation: "설명란은 최소 200자 이상이 권장됩니다. 핵심 키워드를 2-3회 포함하고 자연스럽게 작성하세요.",
+            score: getDescriptionScore(descriptionLengths) // 설명 길이 기반 점수 (0-5)
           },
           hashtagUsage: {
             average: (hashtagCounts.reduce((a, b) => a + b, 0) / hashtagCounts.length).toFixed(1),
-            recommendation: "3-5개의 관련성 높은 해시태그가 최적입니다. 트렌딩 해시태그와 구체적인 니치 해시태그를 조합하세요."
+            recommendation: "3-5개의 관련성 높은 해시태그가 최적입니다. 트렌딩 해시태그와 구체적인 니치 해시태그를 조합하세요.",
+            score: getHashtagScore(hashtagCounts) // 해시태그 사용 점수 (0-5)
           },
           keywordConsistency: {
             topKeywords: findTopKeywords(processedVideos.map(v => v.title + ' ' + v.description)),
-            recommendation: "채널 전체에서 일관된 키워드를 사용하면 유튜브 알고리즘이 채널의 주제를 파악하는 데 도움이 됩니다."
+            recommendation: "채널 전체에서 일관된 키워드를 사용하면 유튜브 알고리즘이 채널의 주제를 파악하는 데 도움이 됩니다.",
+            score: getKeywordConsistencyScore(processedVideos.map(v => v.title + ' ' + v.description)) // 키워드 일관성 점수 (0-5)
           },
           uploadStrategy: {
             frequency: uploadFrequency,
-            recommendation: "일관된 업로드 일정은 시청자 참여도와 알고리즘 노출을 높이는 데 중요합니다."
+            recommendation: "일관된 업로드 일정은 시청자 참여도와 알고리즘 노출을 높이는 데 중요합니다.",
+            score: getUploadStrategyScore(uploadDays) // 업로드 전략 점수 (0-5)
           }
         };
         
