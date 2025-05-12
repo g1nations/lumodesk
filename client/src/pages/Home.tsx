@@ -152,7 +152,7 @@ export default function Home() {
       case 'channel_shorts':
         return (
           <>
-            <ChannelAnalysis data={analysisData} />
+            <ChannelAnalysis data={{...analysisData, hideSEOAnalysis: true}} />
             <ShortsAnalysis data={analysisData} />
           </>
         );

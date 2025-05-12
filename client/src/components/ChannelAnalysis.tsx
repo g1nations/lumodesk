@@ -15,9 +15,10 @@ import { cn } from '@/lib/utils';
 
 interface ChannelAnalysisProps {
   data: any;
+  hideSEOAnalysis?: boolean;
 }
 
-export default function ChannelAnalysis({ data }: ChannelAnalysisProps) {
+export default function ChannelAnalysis({ data, hideSEOAnalysis = false }: ChannelAnalysisProps) {
   // Only proceed if we have valid channel info
   if (!data?.channelInfo) return null;
 
@@ -237,7 +238,7 @@ export default function ChannelAnalysis({ data }: ChannelAnalysisProps) {
             </div>
 
             {/* Top Performing Shorts 섹션 */}
-            {videos.length > 0 && (
+            {videos.length > 0 && !showFilteredView && (
               <div className="mt-8">
                 <div className="flex justify-between items-center mb-4">
                   <h3 className="text-lg font-bold">Top Performing Shorts</h3>
@@ -309,16 +310,28 @@ export default function ChannelAnalysis({ data }: ChannelAnalysisProps) {
                     </div>
                     
                     {(fromDate || toDate) && (
-                      <Button 
-                        variant="ghost"
-                        onClick={() => {
-                          setFromDate(undefined);
-                          setToDate(undefined);
-                        }}
-                        className="text-xs"
-                      >
-                        초기화
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button 
+                          variant="default"
+                          onClick={() => {
+                            setShowFilteredView(true);
+                          }}
+                          className="text-xs"
+                        >
+                          적용
+                        </Button>
+                        <Button 
+                          variant="ghost"
+                          onClick={() => {
+                            setFromDate(undefined);
+                            setToDate(undefined);
+                            setShowFilteredView(false);
+                          }}
+                          className="text-xs"
+                        >
+                          초기화
+                        </Button>
+                      </div>
                     )}
                   </div>
                 </div>
@@ -374,6 +387,107 @@ export default function ChannelAnalysis({ data }: ChannelAnalysisProps) {
                         <div className="flex items-center text-sm text-gray-500 mt-1">
                           <span className="mr-3">{formatNumber(parseInt(video.viewCount))} 조회수</span>
                           <span>{formatDate(video.publishedAt)}</span>
+                        </div>
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* 필터링된 쇼츠 목록 뷰 */}
+            {videos.length > 0 && showFilteredView && (
+              <div className="mt-8">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold">
+                    {fromDate && toDate 
+                      ? `${formatDate(fromDate)} ~ ${formatDate(toDate)} 기간의 쇼츠`
+                      : fromDate 
+                        ? `${formatDate(fromDate)} 이후의 쇼츠` 
+                        : `${formatDate(toDate || new Date())} 이전의 쇼츠`}
+                  </h3>
+                  <Button 
+                    variant="outline"
+                    onClick={() => setShowFilteredView(false)}
+                    className="text-xs"
+                  >
+                    뒤로 가기
+                  </Button>
+                </div>
+                
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <p className="text-sm text-gray-500">필터링된 영상</p>
+                    <p className="text-2xl font-bold text-gray-800">{filteredVideos.length}</p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <p className="text-sm text-gray-500">쇼츠 비율</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                      {Math.round(filteredShortCount / filteredVideos.length * 100) || 0}%
+                    </p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <p className="text-sm text-gray-500">평균 조회수</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                      {formatNumber(filteredVideos.reduce((sum, v) => sum + parseInt(v.viewCount || '0'), 0) / (filteredVideos.length || 1))}
+                    </p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <p className="text-sm text-gray-500">평균 참여율</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                      {(filteredVideos.reduce((sum, v) => sum + calculateEngagementRate(v.likeCount, v.commentCount, v.viewCount), 0) / (filteredVideos.length || 1)).toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="mb-4">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium">필터링된 영상 목록</h4>
+                    <div className="flex gap-2 items-center">
+                      <label className="text-sm text-gray-500">정렬:</label>
+                      <select 
+                        className="text-sm border border-gray-300 rounded px-2 py-1"
+                        onChange={(e) => {
+                          // 정렬 기능은 현재 구현하지 않지만, 향후 확장성을 위해 UI만 추가
+                        }}
+                        defaultValue="views"
+                      >
+                        <option value="views">조회수 순</option>
+                        <option value="date">최신순</option>
+                        <option value="engagement">참여율 순</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  {filteredVideos
+                    .sort((a: any, b: any) => parseInt(b.viewCount) - parseInt(a.viewCount))
+                    .map((video: any, index: number) => (
+                    <a 
+                      href={`/${video.isShort ? 'shorts' : 'videos'}/${video.id}`} 
+                      key={video.id} 
+                      className="border border-gray-200 rounded-lg p-4 flex items-center hover:bg-gray-50 transition-colors cursor-pointer"
+                    >
+                      <div className="text-2xl font-bold text-gray-400 mr-4">#{index + 1}</div>
+                      <div className="w-20 h-20 flex-shrink-0 mr-4 relative">
+                        <img 
+                          src={video.thumbnails?.medium?.url || video.thumbnails?.default?.url} 
+                          alt={video.title}
+                          className="w-full h-full object-cover rounded"
+                        />
+                        {video.isShort || video.duration <= 60 ? (
+                          <div className="absolute bottom-0 right-0 bg-red-500 text-white text-xs px-1 py-0.5 rounded">쇼츠</div>
+                        ) : (
+                          <div className="absolute bottom-0 right-0 bg-blue-500 text-white text-xs px-1 py-0.5 rounded">일반</div>
+                        )}
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-800 line-clamp-1">{video.title}</h4>
+                        <div className="flex items-center text-sm text-gray-500 mt-1">
+                          <span className="mr-3">{formatNumber(parseInt(video.viewCount))} 조회수</span>
+                          <span className="mr-3">{formatDate(video.publishedAt)}</span>
+                          <span>{calculateEngagementRate(video.likeCount, video.commentCount, video.viewCount)}% 참여율</span>
                         </div>
                       </div>
                     </a>
@@ -440,7 +554,7 @@ export default function ChannelAnalysis({ data }: ChannelAnalysisProps) {
             )}
             
             {/* SEO Analysis */}
-            {data.seoAnalysis && (
+            {data.seoAnalysis && !hideSEOAnalysis && (
               <div className="mt-8">
                 <h3 className="text-lg font-bold mb-4">SEO 분석</h3>
                 <div className="bg-yellow-50 p-4 rounded-lg">
