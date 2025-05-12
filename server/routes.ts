@@ -283,11 +283,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Video ID is required' });
       }
       
-      const captions = await getCaptions(videoId, lang as string);
-      res.json(captions);
+      const captionsData = await getCaptions(videoId, lang as string);
+      
+      // 일관된 응답 형식 제공
+      if (Array.isArray(captionsData)) {
+        // 이전 포맷을 새 포맷으로 변환
+        return res.json({ 
+          captions: captionsData,
+          metadata: {
+            language: lang as string,
+            videoId
+          }
+        });
+      } else {
+        // 이미 새 포맷인 경우
+        return res.json(captionsData);
+      }
     } catch (error: any) {
       console.error('Error fetching captions:', error);
-      res.status(500).json({ error: error.message || 'Failed to fetch captions' });
+      // 캡션이 없는 경우도 정상적인 응답 형식으로 반환
+      return res.json({ 
+        captions: [],
+        metadata: {
+          language: lang as string,
+          videoId: videoId,
+          error: error.message || 'Failed to fetch captions'
+        }
+      });
     }
   });
   
@@ -302,12 +324,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Video ID is required' });
       }
       
-      const captionData = await getCaptions(videoId, lang as string);
+      // 캡션 데이터 가져오기
+      const captionDataResult = await getCaptions(videoId, lang as string);
+      
+      // 캡션 데이터 형식 정규화
+      let captions: any[] = [];
+      
+      if (Array.isArray(captionDataResult)) {
+        // 구 형식 캡션 데이터
+        captions = captionDataResult;
+      } else if (captionDataResult && Array.isArray(captionDataResult.captions)) {
+        // 신 형식 캡션 데이터
+        captions = captionDataResult.captions;
+      }
+      
+      // 캡션이 없는 경우
+      if (!captions || captions.length === 0) {
+        if (format === 'json') {
+          return res.json({
+            captions: [],
+            metadata: {
+              videoId,
+              language: lang,
+              message: "No captions available for this video"
+            }
+          });
+        } else {
+          res.setHeader('Content-Type', 'text/plain');
+          return res.send("No captions available for this video");
+        }
+      }
       
       // Format as SRT
       if (format === 'srt') {
         let srtContent = '';
-        captionData.captions.forEach((caption, index) => {
+        captions.forEach((caption, index) => {
           const startTime = formatSrtTime(caption.start);
           const endTime = formatSrtTime(caption.start + caption.duration);
           
@@ -324,7 +375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Format as plain text
       if (format === 'txt') {
         let textContent = '';
-        captionData.captions.forEach(caption => {
+        captions.forEach(caption => {
           textContent += `${caption.text}\n`;
         });
         
@@ -334,12 +385,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Default to JSON
+      const formattedData = {
+        captions,
+        metadata: {
+          videoId,
+          language: lang,
+          count: captions.length
+        }
+      };
+      
       res.setHeader('Content-Type', 'application/json');
       res.setHeader('Content-Disposition', `attachment; filename=${videoId}_${lang}.json`);
-      res.json(captionData);
+      res.json(formattedData);
     } catch (error: any) {
       console.error('Error downloading captions:', error);
-      res.status(500).json({ error: error.message || 'Failed to download captions' });
+      
+      // 에러 발생 시에도 포맷에 맞게 응답
+      if (req.query.format === 'json') {
+        return res.json({ 
+          captions: [],
+          metadata: {
+            videoId,
+            language: lang as string,
+            error: error.message || 'Failed to download captions'
+          }
+        });
+      } else {
+        res.setHeader('Content-Type', 'text/plain');
+        return res.send(`Error: ${error.message || 'Failed to download captions'}`);
+      }
     }
   });
   

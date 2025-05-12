@@ -72,18 +72,34 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
       const response = await fetch(`/api/captions/${id}`);
       const data = await response.json();
       
-      if (data && Array.isArray(data)) {
+      // 캡션 데이터 구조 확인
+      if (data && data.captions && Array.isArray(data.captions)) {
         // 캡션 배열을 순서대로 합치기
+        const fullText = data.captions.map((caption: any) => caption.text).join(' ');
+        setCaptionText(fullText);
+        return fullText; // 성공 시 텍스트 반환
+      } else if (data && Array.isArray(data)) {
+        // 이전 API 응답 형식 지원
         const fullText = data.map((caption: any) => caption.text).join(' ');
         setCaptionText(fullText);
+        return fullText; // 성공 시 텍스트 반환
+      } else {
+        // 캡션이 없는 경우
+        toast({
+          title: '캡션 없음',
+          description: '이 비디오에는 캡션이 없습니다.',
+          variant: 'default',
+        });
+        return null;
       }
     } catch (error) {
       console.error('Error fetching captions:', error);
       toast({
         title: 'Error',
-        description: 'Failed to fetch captions',
+        description: '캡션을 가져오는 중 오류가 발생했습니다.',
         variant: 'destructive',
       });
+      return null;
     } finally {
       setIsLoadingCaptions(false);
     }
@@ -142,12 +158,12 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
   const generateCaptionParody = async () => {
     if (!captionText) {
       // 캡션이 없으면 먼저 가져오기
-      await fetchCaptions();
+      const captions = await fetchCaptions();
       
-      if (!captionText) {
+      if (!captions) {
         toast({
-          title: 'No Captions Available',
-          description: 'Cannot generate parody without captions',
+          title: '캡션 없음',
+          description: '캡션이 없어 패러디를 생성할 수 없습니다.',
           variant: 'destructive',
         });
         return;
@@ -158,8 +174,8 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
     
     if (!apiKey) {
       toast({
-        title: 'API Key Required',
-        description: 'Please set your OpenRouter API key in settings',
+        title: 'API Key 필요',
+        description: '설정에서 OpenRouter API 키를 입력해주세요.',
         variant: 'destructive',
       });
       return;
@@ -185,19 +201,26 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
       if (result.parody) {
         setAiParody(result.parody);
       } else {
-        throw new Error('Failed to generate parody from AI');
+        throw new Error('AI로부터 패러디 생성에 실패했습니다.');
       }
     } catch (error) {
       console.error('Error generating parody:', error);
       toast({
-        title: 'Error',
-        description: 'Failed to generate parody',
+        title: '오류',
+        description: '패러디 생성 중 오류가 발생했습니다.',
         variant: 'destructive',
       });
     } finally {
       setIsLoadingParody(false);
     }
   };
+  
+  // 컴포넌트 마운트 시 캡션 로드 시도
+  useEffect(() => {
+    if (captionsAvailable && !captionText) {
+      fetchCaptions();
+    }
+  }, [id]);
 
   return (
     <div className="mb-8">
@@ -397,6 +420,74 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
                 </div>
               )}
             </div>
+            
+            {/* 캡션 섹션 */}
+            {captionsAvailable && (
+              <div className="mt-6">
+                <div className="bg-blue-50 p-5 rounded-lg">
+                  <div className="flex justify-between items-center mb-3">
+                    <h3 className="text-lg font-bold">캡션 (자막)</h3>
+                    <div className="flex space-x-2">
+                      <Button 
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchCaptions()}
+                        disabled={isLoadingCaptions}
+                        className="flex items-center text-xs"
+                      >
+                        <Subtitles className="w-3 h-3 mr-1" />
+                        캡션 불러오기
+                      </Button>
+                      
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="sm" className="flex items-center text-xs">
+                            <Download className="w-3 h-3 mr-1" />
+                            Download Captions
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          <DropdownMenuItem onClick={() => window.open(`/api/captions/${id}/download?format=srt`, '_blank')}>
+                            SRT 형식으로 다운로드
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => window.open(`/api/captions/${id}/download?format=txt`, '_blank')}>
+                            텍스트 형식으로 다운로드
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => window.open(`/api/captions/${id}/download?format=json`, '_blank')}>
+                            JSON 형식으로 다운로드
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                  
+                  {isLoadingCaptions && (
+                    <div className="flex items-center justify-center p-6 bg-white rounded-lg">
+                      <Spinner size="md" className="text-blue-500 mr-3" />
+                      <span>캡션 불러오는 중...</span>
+                    </div>
+                  )}
+                  
+                  {!isLoadingCaptions && captionText && (
+                    <div className="bg-white p-4 rounded-lg">
+                      <h4 className="font-semibold mb-2 flex items-center text-blue-700">
+                        <Subtitles className="w-4 h-4 mr-1" />
+                        캡션 내용:
+                      </h4>
+                      <div className="whitespace-pre-wrap text-sm border-l-4 border-blue-300 pl-3 py-1 max-h-48 overflow-y-auto">
+                        {captionText}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {!isLoadingCaptions && !captionText && (
+                    <div className="bg-white p-4 rounded-lg text-sm text-gray-500 text-center">
+                      '캡션 불러오기'를 클릭하여 이 쇼츠의 캡션을 확인해보세요!
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
             
             {/* AI 캡션 패러디 섹션 */}
             {captionsAvailable && (
