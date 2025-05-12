@@ -448,29 +448,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // AI를 활용한 패러디 생성 API 엔드포인트
-  app.post('/api/generate-parody', async (req, res) => {
-    try {
-      const { caption, apiKey, model, language } = req.body;
-      
-      if (!apiKey) {
-        return res.status(400).json({ error: 'OpenRouter API key is required' });
-      }
-      
-      if (!caption) {
-        return res.status(400).json({ error: 'Caption text is required' });
-      }
-      
-      const parody = await generateParody(caption, apiKey, model, language || 'en');
-      
-      return res.json({ parody });
-    } catch (error: any) {
-      console.error('Error generating parody:', error);
-      return res.status(500).json({ error: error.message || 'Error generating parody' });
-    }
-  });
-
-  // AI를 활용한 캡션 최적화 분석 API 엔드포인트
+  // AI를 활용한 캡션 분석 API 엔드포인트
   app.post('/api/analyze-caption', async (req, res) => {
     try {
       const { caption, apiKey, model, language } = req.body;
