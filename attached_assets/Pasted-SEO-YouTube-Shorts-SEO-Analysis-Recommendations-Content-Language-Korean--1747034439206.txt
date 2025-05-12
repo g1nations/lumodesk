@@ -1,0 +1,80 @@
+SEO 분석
+### **YouTube Shorts SEO Analysis & Recommendations**  
+**Content Language:** Korean  
+
+---
+
+#### **1. Overall SEO Score**  
+**Overall: 62/100**  
+The content has foundational SEO elements (keywords, hashtags) but lacks optimization in title/description structure, keyword prioritization, and engagement-driven prompts.  
+
+---
+
+#### **2. Title Optimization Feedback**  
+**Current Length:** 120 characters (too long for Shorts visibility)  
+**Ideal Length:** ≤ 80 characters (for mobile clarity)  
+**Title: 55/100**  
+
+- **Issue 1: Keyword Placement**  
+  - The primary keyword ("인생명언") appears late in the title. SEO principles prioritize placing high-traffic keywords **at the beginning** to improve search relevance.  
+  - **Action:** Move "인생명언" to the start (e.g., "인생명언 | 쇼펜하우어의 철학적 조언...").  
+
+- **Issue 2: Redundancy & Clarity**  
+  - Phrases like "역대 가장 지능이 높았던" (highest intelligence in history) are vague and add unnecessary length. Focus on **specificity** (e.g., "쇼펜하우어 명언" instead of generic claims).  
+
+- **Issue 3: Punctuation & Formatting**  
+  - Ellipsis ("..") and spacing reduce readability. Use **hyphens or colons** to separate clauses (e.g., "인생명언 – 쇼펜하우어의 철학적 조언").  
+
+- **SEO Principle:** Prioritize **click-through rate (CTR)** with concise, keyword-rich titles that clearly signal value.  
+
+---
+
+#### **3. Description Optimization Feedback**  
+**Current Length:** 44 characters (far too short)  
+**Ideal Length:** ≥ 150 characters (to include keywords and engagement prompts)  
+**Description: 40/100**  
+
+- **Issue 1: Missing Keywords**  
+  - The description repeats "명언" (quotes) but omits secondary keywords like "철학자" (philosopher), "쇼펜하우어" (Schopenhauer), or "자기계발 팁" (self-improvement tips).  
+  - **Action:** Expand the description to include **2-3 variations of primary keywords** (e.g., "철학자 쇼펜하우어의 인생명언", "자기계발을 위한 철학 조언").  
+
+- **Issue 2: No Call-to-Action (CTA)**  
+  - Missing prompts like "좋아요/구독하기" (like/subscribe) or "인간관계 고민 해결 방법" (relationship advice solutions) to drive engagement.  
+  - **Action:** Add a **CTA in the first 2 lines** (e.g., "구독하고 매일 명언으로 삶의 지혜를 얻어보세요!").  
+
+- **Issue 3: Low Keyword Density**  
+  - Current keyword density is ~7% (too low). Aim for **10-15%** by naturally integrating terms like "철학자 명언", "동기부여", and "인간관계 팁".  
+
+- **SEO Principle:** Use descriptions to **reinforce keywords** and guide viewers toward actions (e.g., subscribing, commenting).  
+
+---
+
+#### **4. Hashtag Optimization**  
+**Current Count:** 6 hashtags  
+**Ideal Count:** 8-10 hashtags (to maximize discoverability)  
+**Hashtags: 70/100**  
+
+- **Issue 1: Overlapping Keywords**  
+  - "#인생조언" and "#인생명언" are semantically similar. Replace one with **niche-specific tags** like "#철학자명언" or "#쇼펜하우어철학".  
+
+- **Issue 2: Missing High-Volume Tags**  
+  - Add **trending tags** like "#자기계발영상" (self-improvement video) or "#동기부여영상을" (motivational video) to align with search trends.  
+
+- **Issue 3: Tag Order**  
+  - Prioritize **high-traffic hashtags** (e.g., "#자기계발", "#인생명언") at the start, followed by specific tags like "#쇼펜하우어".  
+
+- **SEO Principle:** Use a mix of **broad, mid-tail, and specific hashtags** to capture diverse search queries.  
+
+---
+
+#### **5. Summary Scores**  
+- **Title:** 55/100  
+- **Description:** 40/100  
+- **Hashtags:** 70/100  
+- **Overall:** 62/100  
+
+**Key Takeaways:**  
+1. Shorten the title and front-load keywords.  
+2. Expand the description with CTAs and keyword variations.  
+3. Add 2-3 high-volume hashtags and reorder them strategically.  
+4. Ensure all elements align with **mobile-first readability** (critical for Shorts).  
