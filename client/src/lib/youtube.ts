@@ -1,5 +1,6 @@
 // Local storage key for the YouTube API key
 export const API_KEY_STORAGE_KEY = 'mocktube-api-key';
+export const QWQ_API_KEY_STORAGE_KEY = 'mocktube-qwq-api-key';
 
 // URL parsing and validation functions
 export function parseYouTubeUrl(url: string): { 

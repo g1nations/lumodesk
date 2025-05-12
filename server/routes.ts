@@ -9,6 +9,7 @@ import {
   analyzeShortsVideo,
   getCaptions
 } from "./youtube";
+import { analyzeSEO, generateParody } from "./ai";
 import { InsertAnalysisHistory } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {

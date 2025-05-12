@@ -6,25 +6,40 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible';
-import { Key, Eye, EyeOff, Save, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
-import { API_KEY_STORAGE_KEY } from '@/lib/youtube';
+import { Key, Eye, EyeOff, Save, Trash2, ChevronDown, ChevronUp, Bot } from 'lucide-react';
+import { API_KEY_STORAGE_KEY, QWQ_API_KEY_STORAGE_KEY } from '@/lib/youtube';
 import { useToast } from '@/hooks/use-toast';
 
 interface ApiKeySettingsProps {
   apiKey: string;
   setApiKey: (key: string) => void;
+  qwqApiKey?: string;
+  setQwqApiKey?: (key: string) => void;
 }
 
-export default function ApiKeySettings({ apiKey, setApiKey }: ApiKeySettingsProps) {
+export default function ApiKeySettings({ 
+  apiKey, 
+  setApiKey,
+  qwqApiKey = localStorage.getItem(QWQ_API_KEY_STORAGE_KEY) || '',
+  setQwqApiKey = (key: string) => localStorage.setItem(QWQ_API_KEY_STORAGE_KEY, key)
+}: ApiKeySettingsProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isQwqOpen, setIsQwqOpen] = useState(false);
   const [showKey, setShowKey] = useState(false);
+  const [showQwqKey, setShowQwqKey] = useState(false);
   const [inputValue, setInputValue] = useState(apiKey);
+  const [qwqInputValue, setQwqInputValue] = useState(qwqApiKey);
   const { toast } = useToast();
 
   // Update input value when apiKey prop changes
   useEffect(() => {
     setInputValue(apiKey);
   }, [apiKey]);
+
+  // Update QWQ input value when qwqApiKey changes
+  useEffect(() => {
+    setQwqInputValue(qwqApiKey);
+  }, [qwqApiKey]);
 
   const saveApiKey = () => {
     const key = inputValue.trim();
@@ -33,13 +48,13 @@ export default function ApiKeySettings({ apiKey, setApiKey }: ApiKeySettingsProp
       setApiKey(key);
       toast({
         title: 'Success',
-        description: 'API key saved successfully',
+        description: 'YouTube API key saved successfully',
         duration: 3000,
       });
     } else {
       toast({
         title: 'Error',
-        description: 'Please enter a valid API key',
+        description: 'Please enter a valid YouTube API key',
         variant: 'destructive',
       });
     }
@@ -50,14 +65,45 @@ export default function ApiKeySettings({ apiKey, setApiKey }: ApiKeySettingsProp
     setInputValue('');
     setApiKey('');
     toast({
-      title: 'API Key Cleared',
-      description: 'Your API key has been removed',
+      title: 'YouTube API Key Cleared',
+      description: 'Your YouTube API key has been removed',
+      duration: 3000,
+    });
+  };
+  
+  const saveQwqApiKey = () => {
+    const key = qwqInputValue.trim();
+    if (key) {
+      localStorage.setItem(QWQ_API_KEY_STORAGE_KEY, key);
+      if (setQwqApiKey) setQwqApiKey(key);
+      toast({
+        title: 'Success',
+        description: 'OpenRouter API key saved successfully',
+        duration: 3000,
+      });
+    } else {
+      toast({
+        title: 'Error',
+        description: 'Please enter a valid OpenRouter API key',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const clearQwqApiKey = () => {
+    localStorage.removeItem(QWQ_API_KEY_STORAGE_KEY);
+    setQwqInputValue('');
+    if (setQwqApiKey) setQwqApiKey('');
+    toast({
+      title: 'OpenRouter API Key Cleared',
+      description: 'Your OpenRouter API key has been removed',
       duration: 3000,
     });
   };
 
   return (
-    <div className="mt-4 border-t border-gray-100 pt-4">
+    <div className="mt-4 border-t border-gray-100 pt-4 space-y-4">
+      {/* YouTube API Key Settings */}
       <Collapsible
         open={isOpen}
         onOpenChange={setIsOpen}
@@ -115,7 +161,7 @@ export default function ApiKeySettings({ apiKey, setApiKey }: ApiKeySettingsProp
                 <line x1="12" y1="16" x2="12" y2="12"></line>
                 <line x1="12" y1="8" x2="12.01" y2="8"></line>
               </svg>
-              How to get an API Key:
+              How to get a YouTube API Key:
             </p>
             <ol className="list-decimal list-inside space-y-1 text-gray-700">
               <li>Go to <a href="https://console.cloud.google.com/" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Google Cloud Console</a></li>
@@ -124,6 +170,77 @@ export default function ApiKeySettings({ apiKey, setApiKey }: ApiKeySettingsProp
               <li>Create credentials (API Key)</li>
               <li>Copy and paste the key above</li>
             </ol>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+      
+      {/* OpenRouter API Key Settings */}
+      <Collapsible
+        open={isQwqOpen}
+        onOpenChange={setIsQwqOpen}
+        className="w-full"
+      >
+        <CollapsibleTrigger className="flex items-center text-sm font-medium text-gray-600 cursor-pointer hover:text-[#FF0000] w-full">
+          <Bot className="w-4 h-4 mr-2" />
+          <span>OpenRouter API Key Settings</span>
+          {isQwqOpen ? <ChevronUp className="ml-auto w-4 h-4" /> : <ChevronDown className="ml-auto w-4 h-4" />}
+        </CollapsibleTrigger>
+        
+        <CollapsibleContent className="mt-4 bg-gray-50 p-4 rounded-lg">
+          <label htmlFor="qwq-api-key-input" className="block text-sm font-medium text-gray-700 mb-2">
+            Your OpenRouter API Key (for QWQ-32B AI)
+          </label>
+          <div className="flex">
+            <Input
+              id="qwq-api-key-input"
+              type={showQwqKey ? 'text' : 'password'}
+              placeholder="Enter your OpenRouter API key"
+              value={qwqInputValue}
+              onChange={(e) => setQwqInputValue(e.target.value)}
+              className="flex-grow px-4 py-2 border border-gray-300 rounded-l-lg focus:ring-2 focus:ring-[#FF0000] focus:border-[#FF0000]"
+            />
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={() => setShowQwqKey(!showQwqKey)}
+              className="px-3 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 border border-gray-300 border-l-0 rounded-r-lg"
+            >
+              {showQwqKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </Button>
+          </div>
+          
+          <div className="mt-3 flex justify-between">
+            <Button
+              onClick={saveQwqApiKey}
+              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium rounded-lg"
+            >
+              <Save className="w-4 h-4 mr-1" /> Save Key
+            </Button>
+            <Button
+              onClick={clearQwqApiKey}
+              variant="secondary"
+              className="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium rounded-lg"
+            >
+              <Trash2 className="w-4 h-4 mr-1" /> Clear Key
+            </Button>
+          </div>
+          
+          <div className="mt-4 text-sm text-gray-600 bg-purple-50 p-3 rounded-lg">
+            <p className="font-medium text-purple-700 mb-1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 inline-block mr-1">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              How to get an OpenRouter API Key:
+            </p>
+            <ol className="list-decimal list-inside space-y-1 text-gray-700">
+              <li>Go to <a href="https://openrouter.ai/keys" target="_blank" rel="noopener noreferrer" className="text-purple-600 hover:underline">OpenRouter API Keys</a></li>
+              <li>Create an account or log in</li>
+              <li>Create a new API key</li>
+              <li>Copy and paste the key above</li>
+            </ol>
+            <p className="mt-2 text-purple-600">This API key is used for AI-powered SEO analysis and caption parodies using qwen/qwq-32b model</p>
           </div>
         </CollapsibleContent>
       </Collapsible>
