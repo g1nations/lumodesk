@@ -120,14 +120,23 @@ export default function Home() {
   // 개별 쇼츠 분석 이벤트 리스너
   useEffect(() => {
     const handleShortAnalysis = (event: any) => {
-      if (event.detail?.data) {
-        setAnalysisData(event.detail.data);
+      if (event.detail) {
+        setAnalysisData(event.detail);
+        
+        // 쇼츠 분석인 경우 해당 탭으로 변경
+        if (event.detail.type === 'shorts') {
+          setActiveTab('shorts');
+        }
       }
     };
     
+    // 두 가지 이벤트 리스너 등록 (이전 방식 호환성)
     window.addEventListener('short-analysis', handleShortAnalysis);
+    window.addEventListener('show-shorts-analysis', handleShortAnalysis);
+    
     return () => {
       window.removeEventListener('short-analysis', handleShortAnalysis);
+      window.removeEventListener('show-shorts-analysis', handleShortAnalysis);
     };
   }, []);
 

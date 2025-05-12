@@ -31,8 +31,7 @@ export default function ShortsAnalysis({ data }: ShortsAnalysisProps) {
 
   // 개별 쇼츠 분석 함수
   const analyzeShort = (shortId: string) => {
-    // URL 입력칸에 해당 쇼츠 URL 자동 입력
-    const shortsUrl = `https://www.youtube.com/shorts/${shortId}`;
+    // API 키 가져오기
     const apiKey = localStorage.getItem('mocktube-api-key');
     
     if (!apiKey) {
@@ -40,7 +39,36 @@ export default function ShortsAnalysis({ data }: ShortsAnalysisProps) {
       return;
     }
     
+    // 로딩 상태 메시지 표시
+    const loadingElement = document.createElement('div');
+    loadingElement.id = 'loading-overlay';
+    loadingElement.style.position = 'fixed';
+    loadingElement.style.top = '0';
+    loadingElement.style.left = '0';
+    loadingElement.style.width = '100%';
+    loadingElement.style.height = '100%';
+    loadingElement.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+    loadingElement.style.display = 'flex';
+    loadingElement.style.justifyContent = 'center';
+    loadingElement.style.alignItems = 'center';
+    loadingElement.style.zIndex = '9999';
+    
+    const loadingContent = document.createElement('div');
+    loadingContent.style.color = 'white';
+    loadingContent.style.fontSize = '20px';
+    loadingContent.style.textAlign = 'center';
+    loadingContent.innerHTML = '쇼츠 분석 중...<br><div class="spinner" style="margin: 20px auto; width: 50px; height: 50px; border: 3px solid rgba(255,255,255,.3); border-radius: 50%; border-top-color: white; animation: spin 1s ease-in-out infinite;"></div>';
+    
+    loadingElement.appendChild(loadingContent);
+    document.body.appendChild(loadingElement);
+    
+    // 애니메이션 스타일 추가
+    const style = document.createElement('style');
+    style.innerHTML = '@keyframes spin { to { transform: rotate(360deg); } }';
+    document.head.appendChild(style);
+    
     // 쇼츠 URL 분석 API 직접 호출
+    const shortsUrl = `https://www.youtube.com/shorts/${shortId}`;
     fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -48,12 +76,20 @@ export default function ShortsAnalysis({ data }: ShortsAnalysisProps) {
     })
     .then(res => res.json())
     .then(data => {
-      // localStorage에 분석 결과 저장
-      localStorage.setItem('current-analysis', JSON.stringify(data));
-      // 이벤트 발생
-      window.dispatchEvent(new CustomEvent('shorts-analyzed', { detail: data }));
+      // 로딩 화면 제거
+      document.body.removeChild(loadingElement);
+      
+      // 분석 결과 표시
+      document.title = '쇼츠 분석 결과 - MockTube Scanner';
+      const event = new CustomEvent('show-shorts-analysis', { detail: data });
+      window.dispatchEvent(event);
     })
-    .catch(err => console.error('Error analyzing short:', err));
+    .catch(err => {
+      // 로딩 화면 제거
+      document.body.removeChild(loadingElement);
+      console.error('Error analyzing short:', err);
+      alert('쇼츠 분석 중 오류가 발생했습니다.');
+    });
   };
 
   return (
