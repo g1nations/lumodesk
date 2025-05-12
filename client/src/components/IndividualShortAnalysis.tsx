@@ -1,6 +1,7 @@
+import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { formatNumber, formatDate } from '@/lib/youtube';
-import { Calendar, Play, Eye, ThumbsUp, MessageSquare, Download, Subtitles } from 'lucide-react';
+import { formatNumber, formatDate, QWQ_API_KEY_STORAGE_KEY } from '@/lib/youtube';
+import { Calendar, Play, Eye, ThumbsUp, MessageSquare, Download, Subtitles, Bot, Sparkles, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
   DropdownMenu,
@@ -8,6 +9,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { Spinner } from './Spinner';
+import { useToast } from '@/hooks/use-toast';
 
 interface IndividualShortAnalysisProps {
   data: any;
@@ -32,6 +35,150 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
     hashtags = [],
     captionsAvailable
   } = videoInfo;
+  
+  const [aiSeoAnalysis, setAiSeoAnalysis] = useState<string | null>(null);
+  const [aiParody, setAiParody] = useState<string | null>(null);
+  const [captionText, setCaptionText] = useState<string | null>(null);
+  const [isLoadingSeo, setIsLoadingSeo] = useState(false);
+  const [isLoadingParody, setIsLoadingParody] = useState(false);
+  const [isLoadingCaptions, setIsLoadingCaptions] = useState(false);
+  const { toast } = useToast();
+  
+  // 캡션 데이터 가져오기
+  const fetchCaptions = async () => {
+    if (!id || isLoadingCaptions) return;
+    
+    try {
+      setIsLoadingCaptions(true);
+      const response = await fetch(`/api/captions/${id}`);
+      const data = await response.json();
+      
+      if (data && Array.isArray(data)) {
+        // 캡션 배열을 순서대로 합치기
+        const fullText = data.map((caption: any) => caption.text).join(' ');
+        setCaptionText(fullText);
+      }
+    } catch (error) {
+      console.error('Error fetching captions:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to fetch captions',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoadingCaptions(false);
+    }
+  };
+  
+  // AI 기반 SEO 분석 실행
+  const performAiSeoAnalysis = async () => {
+    const apiKey = localStorage.getItem(QWQ_API_KEY_STORAGE_KEY);
+    
+    if (!apiKey) {
+      toast({
+        title: 'API Key Required',
+        description: 'Please set your OpenRouter API key in settings',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (isLoadingSeo) return;
+    
+    try {
+      setIsLoadingSeo(true);
+      const response = await fetch('/api/analyze-seo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title,
+          description,
+          tags: hashtags,
+          apiKey
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (result.seoAnalysis) {
+        setAiSeoAnalysis(result.seoAnalysis);
+      } else {
+        throw new Error('Failed to get SEO analysis from AI');
+      }
+    } catch (error) {
+      console.error('Error performing AI SEO analysis:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to perform AI SEO analysis',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoadingSeo(false);
+    }
+  };
+  
+  // 캡션 패러디 생성
+  const generateCaptionParody = async () => {
+    if (!captionText) {
+      // 캡션이 없으면 먼저 가져오기
+      await fetchCaptions();
+      
+      if (!captionText) {
+        toast({
+          title: 'No Captions Available',
+          description: 'Cannot generate parody without captions',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+    
+    const apiKey = localStorage.getItem(QWQ_API_KEY_STORAGE_KEY);
+    
+    if (!apiKey) {
+      toast({
+        title: 'API Key Required',
+        description: 'Please set your OpenRouter API key in settings',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    if (isLoadingParody) return;
+    
+    try {
+      setIsLoadingParody(true);
+      const response = await fetch('/api/generate-parody', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          caption: captionText,
+          apiKey
+        }),
+      });
+      
+      const result = await response.json();
+      
+      if (result.parody) {
+        setAiParody(result.parody);
+      } else {
+        throw new Error('Failed to generate parody from AI');
+      }
+    } catch (error) {
+      console.error('Error generating parody:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to generate parody',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsLoadingParody(false);
+    }
+  };
 
   return (
     <div className="mb-8">

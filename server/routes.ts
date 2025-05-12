@@ -342,6 +342,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ error: error.message || 'Failed to download captions' });
     }
   });
+  
+  // AI를 활용한 SEO 분석 API 엔드포인트
+  app.post('/api/analyze-seo', async (req, res) => {
+    try {
+      const { title, description, tags, apiKey } = req.body;
+      
+      if (!apiKey) {
+        return res.status(400).json({ error: 'OpenRouter API key is required' });
+      }
+      
+      if (!title) {
+        return res.status(400).json({ error: 'Video title is required' });
+      }
+      
+      const seoAnalysis = await analyzeSEO(
+        title, 
+        description || '', 
+        tags || [], 
+        apiKey
+      );
+      
+      return res.json({ seoAnalysis });
+    } catch (error: any) {
+      console.error('Error analyzing SEO:', error);
+      return res.status(500).json({ error: error.message || 'Error analyzing SEO' });
+    }
+  });
+  
+  // AI를 활용한 패러디 생성 API 엔드포인트
+  app.post('/api/generate-parody', async (req, res) => {
+    try {
+      const { caption, apiKey } = req.body;
+      
+      if (!apiKey) {
+        return res.status(400).json({ error: 'OpenRouter API key is required' });
+      }
+      
+      if (!caption) {
+        return res.status(400).json({ error: 'Caption text is required' });
+      }
+      
+      const parody = await generateParody(caption, apiKey);
+      
+      return res.json({ parody });
+    } catch (error: any) {
+      console.error('Error generating parody:', error);
+      return res.status(500).json({ error: error.message || 'Error generating parody' });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
