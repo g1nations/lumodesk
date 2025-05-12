@@ -422,7 +422,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI를 활용한 SEO 분석 API 엔드포인트
   app.post('/api/analyze-seo', async (req, res) => {
     try {
-      const { title, description, tags, apiKey } = req.body;
+      const { title, description, tags, apiKey, model } = req.body;
       
       if (!apiKey) {
         return res.status(400).json({ error: 'OpenRouter API key is required' });
@@ -436,7 +436,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         title, 
         description || '', 
         tags || [], 
-        apiKey
+        apiKey,
+        model
       );
       
       return res.json({ seoAnalysis });
@@ -449,7 +450,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI를 활용한 패러디 생성 API 엔드포인트
   app.post('/api/generate-parody', async (req, res) => {
     try {
-      const { caption, apiKey } = req.body;
+      const { caption, apiKey, model } = req.body;
       
       if (!apiKey) {
         return res.status(400).json({ error: 'OpenRouter API key is required' });
@@ -459,7 +460,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Caption text is required' });
       }
       
-      const parody = await generateParody(caption, apiKey);
+      const parody = await generateParody(caption, apiKey, model);
       
       return res.json({ parody });
     } catch (error: any) {

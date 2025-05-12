@@ -1,6 +1,9 @@
 // Local storage key for the YouTube API key
 export const API_KEY_STORAGE_KEY = 'mocktube-api-key';
 export const QWQ_API_KEY_STORAGE_KEY = 'mocktube-qwq-api-key';
+export const AI_MODEL_STORAGE_KEY = 'mocktube-ai-model';
+export const DEFAULT_AI_MODEL = 'qwen/qwen3-235b-a22b:free';
+export const DEFAULT_AI_MODEL_URL = 'https://openrouter.ai/chat?models=qwen//qwen3-235b-a22b:free';
 
 // URL parsing and validation functions
 export function parseYouTubeUrl(url: string): { 

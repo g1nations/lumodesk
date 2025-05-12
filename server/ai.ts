@@ -5,10 +5,10 @@ import axios from 'axios';
  * 
  * @param prompt AI에게 전달할 프롬프트
  * @param apiKey OpenRouter API 키
- * @param model 사용할 모델 (기본값: qwen/qwq-32b)
+ * @param model 사용할 모델 (기본값: qwen/qwen3-235b-a22b:free)
  * @returns AI 응답 텍스트
  */
-export async function getAiResponse(prompt: string, apiKey: string, model: string = 'qwen/qwq-32b') {
+export async function getAiResponse(prompt: string, apiKey: string, model: string = 'qwen/qwen3-235b-a22b:free') {
   if (!apiKey) {
     throw new Error('OpenRouter API key is required');
   }
@@ -53,7 +53,7 @@ export async function getAiResponse(prompt: string, apiKey: string, model: strin
  * @param apiKey OpenRouter API 키
  * @returns SEO 분석 결과
  */
-export async function analyzeSEO(title: string, description: string, tags: string[], apiKey: string) {
+export async function analyzeSEO(title: string, description: string, tags: string[], apiKey: string, model?: string) {
   const prompt = `
 You are a YouTube SEO expert. Analyze this YouTube Shorts content and provide detailed SEO recommendations:
 
@@ -72,7 +72,7 @@ Please provide:
 Format your response with clear sections and bullet points. Be specific and actionable.
 `;
 
-  return await getAiResponse(prompt, apiKey);
+  return await getAiResponse(prompt, apiKey, model);
 }
 
 /**
