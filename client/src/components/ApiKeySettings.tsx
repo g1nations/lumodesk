@@ -18,7 +18,9 @@ import {
   API_KEY_STORAGE_KEY, 
   QWQ_API_KEY_STORAGE_KEY, 
   AI_MODEL_STORAGE_KEY,
-  DEFAULT_AI_MODEL 
+  AI_LANGUAGE_STORAGE_KEY,
+  DEFAULT_AI_MODEL,
+  DEFAULT_AI_LANGUAGE
 } from '@/lib/youtube';
 import { useToast } from '@/hooks/use-toast';
 
@@ -29,6 +31,8 @@ interface ApiKeySettingsProps {
   setQwqApiKey?: (key: string) => void;
   aiModel?: string;
   setAiModel?: (model: string) => void;
+  aiLanguage?: string;
+  setAiLanguage?: (language: string) => void;
 }
 
 export default function ApiKeySettings({ 
@@ -37,16 +41,20 @@ export default function ApiKeySettings({
   qwqApiKey = localStorage.getItem(QWQ_API_KEY_STORAGE_KEY) || '',
   setQwqApiKey = (key: string) => localStorage.setItem(QWQ_API_KEY_STORAGE_KEY, key),
   aiModel = localStorage.getItem(AI_MODEL_STORAGE_KEY) || DEFAULT_AI_MODEL,
-  setAiModel = (model: string) => localStorage.setItem(AI_MODEL_STORAGE_KEY, model)
+  setAiModel = (model: string) => localStorage.setItem(AI_MODEL_STORAGE_KEY, model),
+  aiLanguage = localStorage.getItem(AI_LANGUAGE_STORAGE_KEY) || DEFAULT_AI_LANGUAGE,
+  setAiLanguage = (language: string) => localStorage.setItem(AI_LANGUAGE_STORAGE_KEY, language)
 }: ApiKeySettingsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isQwqOpen, setIsQwqOpen] = useState(false);
   const [isModelOpen, setIsModelOpen] = useState(false);
+  const [isLanguageOpen, setIsLanguageOpen] = useState(false);
   const [showKey, setShowKey] = useState(false);
   const [showQwqKey, setShowQwqKey] = useState(false);
   const [inputValue, setInputValue] = useState(apiKey);
   const [qwqInputValue, setQwqInputValue] = useState(qwqApiKey);
   const [modelValue, setModelValue] = useState(aiModel);
+  const [languageValue, setLanguageValue] = useState(aiLanguage);
   const { toast } = useToast();
 
   // Update input value when apiKey prop changes
@@ -63,6 +71,11 @@ export default function ApiKeySettings({
   useEffect(() => {
     setModelValue(aiModel);
   }, [aiModel]);
+  
+  // Update language value when aiLanguage changes
+  useEffect(() => {
+    setLanguageValue(aiLanguage);
+  }, [aiLanguage]);
 
   const saveApiKey = () => {
     const key = inputValue.trim();
