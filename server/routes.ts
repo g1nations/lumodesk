@@ -178,9 +178,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Analyze individual video/short
         const videoAnalysis = await analyzeShortsVideo(parsedUrl.id!, apiKey);
         
+        // 단일 쇼츠 영상에 대한 SEO 분석
+        const titleLength = videoAnalysis.title?.length || 0;
+        const descriptionLength = videoAnalysis.description?.length || 0;
+        const hashtagCount = videoAnalysis.hashtags?.length || 0;
+        
+        // SEO 분석 추가
+        const seoAnalysis = {
+          titleOptimization: {
+            length: titleLength,
+            recommendation: titleLength < 30 ? 
+              "제목이 너무 짧습니다. 더 설명적인 제목을 사용하세요." : 
+              (titleLength > 70 ? "제목이 너무 깁니다. 핵심만 간결하게 유지하세요." : 
+              "제목 길이가 적절합니다.")
+          },
+          descriptionOptimization: {
+            length: descriptionLength,
+            recommendation: descriptionLength < 100 ? 
+              "설명이 너무 짧습니다. 더 자세한 설명을 추가하면 검색 엔진에 도움이 됩니다." : 
+              "설명 길이가 적절합니다."
+          },
+          hashtagUsage: {
+            count: hashtagCount,
+            recommendation: hashtagCount < 3 ? 
+              "해시태그가 부족합니다. 관련 해시태그를 3-5개 추가하세요." : 
+              (hashtagCount > 10 ? "해시태그가 너무 많습니다. 가장 관련성 높은 해시태그 5개 정도로 줄이세요." : 
+              "해시태그 수가 적절합니다.")
+          },
+          keywordRecommendation: "제목과 설명에 일관된 키워드를 포함시키고, 첫 문장에 핵심 키워드를 배치하세요."
+        };
+        
         const result = {
           type: 'shorts',
-          videoInfo: videoAnalysis
+          videoInfo: videoAnalysis,
+          seoAnalysis
         };
         
         // Save analysis to database

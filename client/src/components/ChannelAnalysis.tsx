@@ -171,6 +171,168 @@ export default function ChannelAnalysis({ data }: ChannelAnalysisProps) {
                 </div>
               </div>
             </div>
+            
+            {/* Top Performing Videos */}
+            {data.topPerformingVideos && data.topPerformingVideos.length > 0 && (
+              <div className="mt-8">
+                <h3 className="text-lg font-bold mb-4">Top 10 Performing Videos</h3>
+                <div className="space-y-4">
+                  {data.topPerformingVideos.map((video: any, index: number) => (
+                    <div key={video.id} className="border border-gray-200 rounded-lg p-4 flex items-center">
+                      <div className="text-2xl font-bold text-gray-400 mr-4">#{index + 1}</div>
+                      <div className="w-20 h-20 flex-shrink-0 mr-4">
+                        <img 
+                          src={video.thumbnails?.medium?.url || video.thumbnails?.default?.url} 
+                          alt={video.title}
+                          className="w-full h-full object-cover rounded"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-800 line-clamp-1">{video.title}</h4>
+                        <div className="flex items-center text-sm text-gray-500 mt-1">
+                          <span className="mr-3">{formatNumber(parseInt(video.viewCount))} views</span>
+                          <span>{formatDate(video.publishedAt)}</span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Common Features Analysis */}
+            {data.commonFeatures && (
+              <div className="mt-8">
+                <h3 className="text-lg font-bold mb-4">공통 특성 분석</h3>
+                <div className="bg-blue-50 p-4 rounded-lg">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                    <div className="bg-white p-3 rounded shadow-sm">
+                      <h4 className="text-sm font-medium text-gray-500">평균 제목 길이</h4>
+                      <p className="text-xl font-bold">{data.commonFeatures.titleLength.average} 자</p>
+                      <p className="text-xs text-gray-500">범위: {data.commonFeatures.titleLength.range}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded shadow-sm">
+                      <h4 className="text-sm font-medium text-gray-500">평균 설명 길이</h4>
+                      <p className="text-xl font-bold">{data.commonFeatures.descriptionLength.average} 자</p>
+                      <p className="text-xs text-gray-500">범위: {data.commonFeatures.descriptionLength.range}</p>
+                    </div>
+                    <div className="bg-white p-3 rounded shadow-sm">
+                      <h4 className="text-sm font-medium text-gray-500">평균 해시태그 수</h4>
+                      <p className="text-xl font-bold">{data.commonFeatures.hashtagCount.average}</p>
+                      <p className="text-xs text-gray-500">범위: {data.commonFeatures.hashtagCount.range}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="bg-white p-3 rounded shadow-sm">
+                      <h4 className="text-sm font-medium text-gray-500">공통 단어</h4>
+                      {data.commonFeatures.commonWords.length > 0 ? (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {data.commonFeatures.commonWords.map((word: string, i: number) => (
+                            <span key={i} className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
+                              {word}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-sm italic mt-2">공통 단어가 없습니다.</p>
+                      )}
+                    </div>
+                    <div className="bg-white p-3 rounded shadow-sm">
+                      <h4 className="text-sm font-medium text-gray-500">공통 해시태그</h4>
+                      {data.commonFeatures.commonHashtags.length > 0 ? (
+                        <div className="flex flex-wrap gap-2 mt-2">
+                          {data.commonFeatures.commonHashtags.map((tag: string, i: number) => (
+                            <span key={i} className="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-gray-500 text-sm italic mt-2">공통 해시태그가 없습니다.</p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {/* SEO Analysis */}
+            {data.seoAnalysis && (
+              <div className="mt-8">
+                <h3 className="text-lg font-bold mb-4">SEO 분석</h3>
+                <div className="bg-yellow-50 p-4 rounded-lg">
+                  <div className="space-y-4">
+                    <div className="bg-white p-3 rounded shadow-sm">
+                      <h4 className="font-medium text-gray-700">제목 최적화</h4>
+                      <div className="flex items-center mt-2">
+                        <div className="w-16 text-center">
+                          <span className="text-lg font-bold">{data.seoAnalysis.titleOptimization.average}</span>
+                          <p className="text-xs text-gray-500">평균 길이</p>
+                        </div>
+                        <div className="flex-1 ml-4">
+                          <p className="text-sm text-gray-600">{data.seoAnalysis.titleOptimization.recommendation}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white p-3 rounded shadow-sm">
+                      <h4 className="font-medium text-gray-700">설명 최적화</h4>
+                      <div className="flex items-center mt-2">
+                        <div className="w-16 text-center">
+                          <span className="text-lg font-bold">{data.seoAnalysis.descriptionOptimization.average}</span>
+                          <p className="text-xs text-gray-500">평균 길이</p>
+                        </div>
+                        <div className="flex-1 ml-4">
+                          <p className="text-sm text-gray-600">{data.seoAnalysis.descriptionOptimization.recommendation}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white p-3 rounded shadow-sm">
+                      <h4 className="font-medium text-gray-700">해시태그 활용</h4>
+                      <div className="flex items-center mt-2">
+                        <div className="w-16 text-center">
+                          <span className="text-lg font-bold">{data.seoAnalysis.hashtagUsage.average}</span>
+                          <p className="text-xs text-gray-500">평균 개수</p>
+                        </div>
+                        <div className="flex-1 ml-4">
+                          <p className="text-sm text-gray-600">{data.seoAnalysis.hashtagUsage.recommendation}</p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white p-3 rounded shadow-sm">
+                      <h4 className="font-medium text-gray-700">키워드 일관성</h4>
+                      <div className="mt-2">
+                        <p className="text-sm text-gray-600 mb-2">{data.seoAnalysis.keywordConsistency.recommendation}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {data.seoAnalysis.keywordConsistency.topKeywords.map((keyword: string, i: number) => (
+                            <span key={i} className="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
+                              {keyword}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white p-3 rounded shadow-sm">
+                      <h4 className="font-medium text-gray-700">업로드 전략</h4>
+                      <div className="flex items-center mt-2">
+                        <div className="w-24 text-center">
+                          <span className="text-lg font-bold">{data.seoAnalysis.uploadStrategy.frequency}</span>
+                          <p className="text-xs text-gray-500">평균 간격</p>
+                        </div>
+                        <div className="flex-1 ml-4">
+                          <p className="text-sm text-gray-600">{data.seoAnalysis.uploadStrategy.recommendation}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+            
           </div>
         </div>
       </Card>
