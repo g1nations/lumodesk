@@ -65,10 +65,15 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
   
   const [aiSeoAnalysis, setAiSeoAnalysis] = useState<string | null>(null);
   const [aiParody, setAiParody] = useState<string | null>(null);
+  const [aiCaptionAnalysis, setAiCaptionAnalysis] = useState<string | null>(null);
   const [captionText, setCaptionText] = useState<string | null>(null);
   const [isLoadingSeo, setIsLoadingSeo] = useState(false);
   const [isLoadingParody, setIsLoadingParody] = useState(false);
   const [isLoadingCaptions, setIsLoadingCaptions] = useState(false);
+  const [isLoadingCaptionAnalysis, setIsLoadingCaptionAnalysis] = useState(false);
+  const [currentLanguage, setCurrentLanguage] = useState(
+    localStorage.getItem(AI_LANGUAGE_STORAGE_KEY) || DEFAULT_AI_LANGUAGE
+  );
   const { toast } = useToast();
   
   // 캡션 데이터 가져오기
@@ -141,6 +146,7 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
   const performAiSeoAnalysis = async () => {
     const apiKey = localStorage.getItem(QWQ_API_KEY_STORAGE_KEY);
     const model = localStorage.getItem(AI_MODEL_STORAGE_KEY) || DEFAULT_AI_MODEL;
+    const language = currentLanguage;
     
     if (!apiKey) {
       toast({
@@ -165,7 +171,8 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
           description,
           tags: hashtags,
           apiKey,
-          model
+          model,
+          language
         }),
       });
       
@@ -215,6 +222,7 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
     
     const apiKey = localStorage.getItem(QWQ_API_KEY_STORAGE_KEY);
     const model = localStorage.getItem(AI_MODEL_STORAGE_KEY) || DEFAULT_AI_MODEL;
+    const language = currentLanguage;
     
     if (!apiKey) {
       toast({
@@ -237,7 +245,8 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
         body: JSON.stringify({
           caption: captionText,
           apiKey,
-          model
+          model,
+          language
         }),
       });
       
