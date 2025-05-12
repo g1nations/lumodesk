@@ -70,15 +70,39 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
     try {
       setIsLoadingCaptions(true);
       const response = await fetch(`/api/captions/${id}`);
+      
+      if (!response.ok) {
+        throw new Error(`Error fetching captions: ${response.status}`);
+      }
+      
       const data = await response.json();
+      console.log('Caption data received:', data);
       
       // 캡션 데이터 구조 확인
       if (data && data.captions && Array.isArray(data.captions)) {
+        if (data.captions.length === 0) {
+          toast({
+            title: '캡션 없음',
+            description: '이 비디오에는 캡션이 없습니다.',
+            variant: 'default',
+          });
+          return null;
+        }
+        
         // 캡션 배열을 순서대로 합치기
         const fullText = data.captions.map((caption: any) => caption.text).join(' ');
         setCaptionText(fullText);
         return fullText; // 성공 시 텍스트 반환
       } else if (data && Array.isArray(data)) {
+        if (data.length === 0) {
+          toast({
+            title: '캡션 없음',
+            description: '이 비디오에는 캡션이 없습니다.',
+            variant: 'default',
+          });
+          return null;
+        }
+        
         // 이전 API 응답 형식 지원
         const fullText = data.map((caption: any) => caption.text).join(' ');
         setCaptionText(fullText);
@@ -170,6 +194,15 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
       }
     }
     
+    if (!captionText || captionText.trim() === '') {
+      toast({
+        title: '오류',
+        description: '캡션 내용이 비어있어 패러디를 생성할 수 없습니다.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     const apiKey = localStorage.getItem(QWQ_API_KEY_STORAGE_KEY);
     
     if (!apiKey) {
@@ -217,10 +250,10 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
   
   // 컴포넌트 마운트 시 캡션 로드 시도
   useEffect(() => {
-    if (captionsAvailable && !captionText) {
+    if (captionsAvailable) {
       fetchCaptions();
     }
-  }, [id]);
+  }, [id, captionsAvailable]);
 
   return (
     <div className="mb-8">
