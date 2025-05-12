@@ -5,7 +5,9 @@ import {
   formatDate, 
   QWQ_API_KEY_STORAGE_KEY,
   AI_MODEL_STORAGE_KEY,
-  DEFAULT_AI_MODEL 
+  AI_LANGUAGE_STORAGE_KEY,
+  DEFAULT_AI_MODEL,
+  DEFAULT_AI_LANGUAGE
 } from '@/lib/youtube';
 import { Calendar, Play, Eye, ThumbsUp, MessageSquare, Download, Subtitles, Bot, Sparkles, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';

@@ -149,6 +149,18 @@ export default function ApiKeySettings({
       });
     }
   };
+  
+  // Save AI language preference
+  const saveAiLanguage = (value: string) => {
+    localStorage.setItem(AI_LANGUAGE_STORAGE_KEY, value);
+    if (setAiLanguage) setAiLanguage(value);
+    setLanguageValue(value);
+    toast({
+      title: 'Language Updated',
+      description: `Language set to ${value === 'ko' ? 'Korean' : 'English'}.`,
+      duration: 3000,
+    });
+  };
 
   return (
     <div className="mt-4 border-t border-gray-100 pt-4 space-y-4">
@@ -342,6 +354,71 @@ export default function ApiKeySettings({
               <li>The default model is Qwen 3 235B (recommended)</li>
               <li>Free tier models have limited usage quotas</li>
               <li>Visit <a href="https://openrouter.ai/models" target="_blank" rel="noopener noreferrer" className="text-teal-600 hover:underline">OpenRouter Models</a> to learn more</li>
+            </ul>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+      
+      {/* Language Settings */}
+      <Collapsible
+        open={isLanguageOpen}
+        onOpenChange={setIsLanguageOpen}
+        className="w-full"
+      >
+        <CollapsibleTrigger className="flex items-center text-sm font-medium text-gray-600 cursor-pointer hover:text-[#FF0000] w-full">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="2" y1="12" x2="22" y2="12"></line>
+            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+          </svg>
+          <span>Language Settings</span>
+          {isLanguageOpen ? <ChevronUp className="ml-auto w-4 h-4" /> : <ChevronDown className="ml-auto w-4 h-4" />}
+        </CollapsibleTrigger>
+        
+        <CollapsibleContent className="mt-4 bg-gray-50 p-4 rounded-lg">
+          <label htmlFor="language-select" className="block text-sm font-medium text-gray-700 mb-2">
+            AI Response Language
+          </label>
+          
+          <div className="flex flex-wrap gap-3 mt-2">
+            <button
+              type="button"
+              onClick={() => saveAiLanguage('en')}
+              className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors
+                ${languageValue === 'en' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+            >
+              🇺🇸 English
+            </button>
+            
+            <button
+              type="button"
+              onClick={() => saveAiLanguage('ko')}
+              className={`flex items-center px-4 py-2 rounded-md text-sm font-medium transition-colors
+                ${languageValue === 'ko' 
+                  ? 'bg-blue-600 text-white' 
+                  : 'bg-white border border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
+            >
+              🇰🇷 한국어
+            </button>
+          </div>
+          
+          <div className="mt-4 text-sm text-gray-600 bg-blue-50 p-3 rounded-lg">
+            <p className="font-medium text-blue-700 mb-1">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 inline-block mr-1">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              About Language Settings:
+            </p>
+            <ul className="list-disc list-inside space-y-1 text-gray-700">
+              <li>Affects all AI-generated content (SEO analysis, caption advice, etc.)</li>
+              <li>Helps you understand recommendations in your preferred language</li>
+              <li>Change any time to switch between languages</li>
             </ul>
           </div>
         </CollapsibleContent>
