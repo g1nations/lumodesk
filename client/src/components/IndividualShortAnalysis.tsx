@@ -1,6 +1,13 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { formatNumber, formatDate } from '@/lib/youtube';
-import { Calendar, Play, Eye, ThumbsUp, MessageSquare } from 'lucide-react';
+import { Calendar, Play, Eye, ThumbsUp, MessageSquare, Download, Subtitles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 
 interface IndividualShortAnalysisProps {
   data: any;
@@ -114,22 +121,44 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
             </div>
             
             {/* Captions Availability */}
-            <div className="mt-4 text-sm">
-              {captionsAvailable ? (
-                <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 inline-block mr-1">
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                  </svg>
-                  Captions Available
-                </span>
-              ) : (
-                <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full font-medium">
-                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 inline-block mr-1">
-                    <line x1="18" y1="6" x2="6" y2="18"></line>
-                    <line x1="6" y1="6" x2="18" y2="18"></line>
-                  </svg>
-                  No Captions
-                </span>
+            <div className="mt-4 text-sm flex items-center justify-between">
+              <div>
+                {captionsAvailable ? (
+                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
+                    <Subtitles className="w-4 h-4 inline-block mr-1" />
+                    Captions Available
+                  </span>
+                ) : (
+                  <span className="bg-gray-100 text-gray-600 px-2 py-1 rounded-full font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-4 h-4 inline-block mr-1">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    No Captions
+                  </span>
+                )}
+              </div>
+              
+              {captionsAvailable && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="outline" className="flex items-center gap-1">
+                      <Download className="w-4 h-4" />
+                      <span>Download Captions</span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => window.open(`/api/captions/${id}/download?format=srt`, '_blank')}>
+                      Download as SRT
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => window.open(`/api/captions/${id}/download?format=txt`, '_blank')}>
+                      Download as Text
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => window.open(`/api/captions/${id}/download?format=json`, '_blank')}>
+                      Download as JSON
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
             </div>
           </div>

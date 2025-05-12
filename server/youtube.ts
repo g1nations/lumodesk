@@ -1,6 +1,7 @@
 import { google } from 'googleapis';
 import axios from 'axios';
 import * as cheerio from 'cheerio';
+import https from 'https';
 
 // Parse YouTube URL and determine analysis type
 export function parseYouTubeUrl(url: string): { 
@@ -263,15 +264,57 @@ export async function analyzeShortsVideo(videoId: string, apiKey: string) {
     
     // Try to get captions availability
     let captionsAvailable = false;
+    let captionTracks: { languageCode: string; languageName: string; name: string; id: string }[] = [];
+    
     try {
       const captionResponse = await youtube.captions.list({
         part: ['snippet'],
         videoId
       });
-      captionsAvailable = captionResponse.data.items !== undefined && captionResponse.data.items.length > 0;
+      
+      if (captionResponse.data.items && captionResponse.data.items.length > 0) {
+        captionsAvailable = true;
+        captionTracks = captionResponse.data.items.map(caption => ({
+          languageCode: caption.snippet?.language || '',
+          languageName: caption.snippet?.name || '',
+          name: caption.snippet?.trackKind || '',
+          id: caption.id || ''
+        }));
+      }
     } catch (e) {
-      // Captions API might require additional permissions
-      console.log('Could not check captions:', e);
+      // Try alternative method if the captions.list API fails
+      // This is a fallback since captions.list requires additional permissions
+      try {
+        // Fetch the video page to check for captions availability
+        const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+        const response = await axios.get(videoUrl);
+        const html = response.data;
+        
+        // Check if captions are mentioned in the page
+        if (html.includes('"playerCaptionsTracklistRenderer"') || 
+            html.includes('"captionTracks"')) {
+          captionsAvailable = true;
+          
+          // Try to extract caption track info
+          const captionTrackMatch = html.match(/"captionTracks":\[(.*?)\]/);
+          if (captionTrackMatch && captionTrackMatch[1]) {
+            const captionTrackJson = `[${captionTrackMatch[1]}]`;
+            try {
+              const parsed = JSON.parse(captionTrackJson);
+              captionTracks = parsed.map((track: any) => ({
+                languageCode: track.languageCode || '',
+                languageName: track.name?.simpleText || '',
+                name: track.name?.simpleText || '',
+                id: track.baseUrl || '' // Use baseUrl as ID for downloading
+              }));
+            } catch (jsonError) {
+              console.error('Failed to parse caption tracks:', jsonError);
+            }
+          }
+        }
+      } catch (scrapeError) {
+        console.error('Failed to scrape video page for captions:', scrapeError);
+      }
     }
     
     return {
@@ -288,10 +331,77 @@ export async function analyzeShortsVideo(videoId: string, apiKey: string) {
       thumbnails: videoData.snippet?.thumbnails,
       hashtags: hashtags,
       captionsAvailable: captionsAvailable,
-      transcriptNote: "YouTube API restrictions prevent direct transcript access. Use YouTube Studio or captions.list API with proper authorization for full transcript access."
+      captionTracks: captionTracks,
+      transcriptNote: captionsAvailable 
+        ? "Captions are available for this video. You can download them from the UI."
+        : "No captions are available for this video."
     };
   } catch (error: any) {
     console.error('Error analyzing Shorts video:', error);
     throw new Error(`Error analyzing Shorts video: ${error.message}`);
+  }
+}
+
+// Get captions for a video
+export async function getCaptions(videoId: string, lang = 'en') {
+  try {
+    // First try to get the video page to extract caption info
+    const videoUrl = `https://www.youtube.com/watch?v=${videoId}`;
+    const response = await axios.get(videoUrl);
+    const html = response.data;
+    
+    // Check if captions are available
+    if (!html.includes('"captionTracks"')) {
+      throw new Error('No captions available for this video');
+    }
+    
+    // Extract caption track URLs
+    const captionTrackMatch = html.match(/"captionTracks":\[(.*?)\]/);
+    if (!captionTrackMatch || !captionTrackMatch[1]) {
+      throw new Error('Failed to extract caption track information');
+    }
+    
+    const captionTrackJson = `[${captionTrackMatch[1]}]`;
+    const captionTracks = JSON.parse(captionTrackJson);
+    
+    // Find the caption track for the requested language
+    let captionTrack = captionTracks.find((track: any) => track.languageCode === lang);
+    
+    // If the requested language isn't available, use the first track
+    if (!captionTrack && captionTracks.length > 0) {
+      captionTrack = captionTracks[0];
+    }
+    
+    if (!captionTrack || !captionTrack.baseUrl) {
+      throw new Error(`Caption track for language ${lang} not found`);
+    }
+    
+    // Get the caption file (in XML format)
+    const captionResponse = await axios.get(captionTrack.baseUrl);
+    const captionXml = captionResponse.data;
+    
+    // Parse the XML to extract the captions
+    const $ = cheerio.load(captionXml, { xmlMode: true });
+    const captionData = $('transcript text').map((_, elem) => {
+      const $elem = $(elem);
+      return {
+        start: parseFloat($elem.attr('start') || '0'),
+        duration: parseFloat($elem.attr('dur') || '0'),
+        text: $elem.text()
+      };
+    }).get();
+    
+    // Return the caption data and metadata
+    return {
+      captions: captionData,
+      metadata: {
+        language: captionTrack.languageCode,
+        languageName: captionTrack.name?.simpleText || captionTrack.languageCode,
+        isAutoGenerated: captionTrack.kind === 'asr'
+      }
+    };
+  } catch (error: any) {
+    console.error('Error getting captions:', error);
+    throw new Error(`Failed to get captions: ${error.message}`);
   }
 }

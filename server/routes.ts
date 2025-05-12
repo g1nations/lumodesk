@@ -6,7 +6,8 @@ import {
   getChannelById, 
   getChannelByUsername, 
   getChannelVideos, 
-  analyzeShortsVideo 
+  analyzeShortsVideo,
+  getCaptions
 } from "./youtube";
 import { InsertAnalysisHistory } from "@shared/schema";
 
@@ -172,6 +173,76 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(500).json({ message: error.message || 'Failed to fetch analysis' });
     }
   });
+  
+  // Get captions for a video
+  app.get('/api/captions/:videoId', async (req, res) => {
+    try {
+      const { videoId } = req.params;
+      const lang = req.query.lang || 'en';
+      
+      if (!videoId) {
+        return res.status(400).json({ error: 'Video ID is required' });
+      }
+      
+      const captions = await getCaptions(videoId, lang as string);
+      res.json(captions);
+    } catch (error: any) {
+      console.error('Error fetching captions:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch captions' });
+    }
+  });
+  
+  // Download captions as SRT format
+  app.get('/api/captions/:videoId/download', async (req, res) => {
+    try {
+      const { videoId } = req.params;
+      const lang = req.query.lang || 'en';
+      const format = req.query.format || 'srt'; // srt, txt, json
+      
+      if (!videoId) {
+        return res.status(400).json({ error: 'Video ID is required' });
+      }
+      
+      const captionData = await getCaptions(videoId, lang as string);
+      
+      // Format as SRT
+      if (format === 'srt') {
+        let srtContent = '';
+        captionData.captions.forEach((caption, index) => {
+          const startTime = formatSrtTime(caption.start);
+          const endTime = formatSrtTime(caption.start + caption.duration);
+          
+          srtContent += `${index + 1}\n`;
+          srtContent += `${startTime} --> ${endTime}\n`;
+          srtContent += `${caption.text}\n\n`;
+        });
+        
+        res.setHeader('Content-Type', 'text/plain');
+        res.setHeader('Content-Disposition', `attachment; filename=${videoId}_${lang}.srt`);
+        return res.send(srtContent);
+      }
+      
+      // Format as plain text
+      if (format === 'txt') {
+        let textContent = '';
+        captionData.captions.forEach(caption => {
+          textContent += `${caption.text}\n`;
+        });
+        
+        res.setHeader('Content-Type', 'text/plain');
+        res.setHeader('Content-Disposition', `attachment; filename=${videoId}_${lang}.txt`);
+        return res.send(textContent);
+      }
+      
+      // Default to JSON
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Disposition', `attachment; filename=${videoId}_${lang}.json`);
+      res.json(captionData);
+    } catch (error: any) {
+      console.error('Error downloading captions:', error);
+      res.status(500).json({ error: error.message || 'Failed to download captions' });
+    }
+  });
 
   const httpServer = createServer(app);
   return httpServer;
@@ -247,4 +318,14 @@ function parseIsoDuration(duration: string): number {
 // Check if a video is a Short (≤60s)
 function isShort(duration: string): boolean {
   return parseIsoDuration(duration) <= 60;
+}
+
+// Format seconds to SRT time format (HH:MM:SS,mmm)
+function formatSrtTime(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const secs = Math.floor(seconds % 60);
+  const ms = Math.floor((seconds % 1) * 1000);
+  
+  return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')},${ms.toString().padStart(3, '0')}`;
 }
