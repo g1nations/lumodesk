@@ -43,7 +43,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const videos = await getChannelVideos(
           channelData.id, 
           apiKey,
-          10, 
+          20, // 더 많은 비디오를 가져와서 분석 대상을 늘림
           parsedUrl.isShorts
         );
         
@@ -56,7 +56,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Extract hashtags from video titles and descriptions
         const allHashtags = extractAllHashtags(videos);
         
-        // Create channel analysis result
+        // 각 비디오에 대한 기본 처리
+        const processedVideos = videos.map((video: any) => ({
+          id: video.id,
+          title: video.snippet.title,
+          description: video.snippet.description,
+          publishedAt: video.snippet.publishedAt,
+          thumbnails: video.snippet.thumbnails,
+          viewCount: parseInt(video.statistics?.viewCount || '0'),
+          likeCount: parseInt(video.statistics?.likeCount || '0'),
+          commentCount: parseInt(video.statistics?.commentCount || '0'),
+          duration: parseIsoDuration(video.contentDetails.duration),
+          isShort: isShort(video.contentDetails.duration),
+          hashtags: extractHashtags(video.snippet.title + ' ' + video.snippet.description)
+        }));
+
+        // SEO 분석 준비
+        const titleLengths = processedVideos.map(v => v.title.length);
+        const descriptionLengths = processedVideos.map(v => v.description.length);
+        const hashtagCounts = processedVideos.map(v => v.hashtags.length);
+        
+        // 성공적인 비디오 분석 (View 기준 상위 비디오)
+        const topPerformingVideos = [...processedVideos]
+          .sort((a, b) => b.viewCount - a.viewCount)
+          .slice(0, 10);
+          
+        // 성공적인 비디오의 공통적인 특징 분석
+        const commonFeatures = {
+          titleLength: {
+            average: Math.round(topPerformingVideos.reduce((sum, v) => sum + v.title.length, 0) / topPerformingVideos.length),
+            range: `${Math.min(...topPerformingVideos.map(v => v.title.length))} - ${Math.max(...topPerformingVideos.map(v => v.title.length))}`
+          },
+          descriptionLength: {
+            average: Math.round(topPerformingVideos.reduce((sum, v) => sum + v.description.length, 0) / topPerformingVideos.length),
+            range: `${Math.min(...topPerformingVideos.map(v => v.description.length))} - ${Math.max(...topPerformingVideos.map(v => v.description.length))}`
+          },
+          hashtagCount: {
+            average: (topPerformingVideos.reduce((sum, v) => sum + v.hashtags.length, 0) / topPerformingVideos.length).toFixed(1),
+            range: `${Math.min(...topPerformingVideos.map(v => v.hashtags.length))} - ${Math.max(...topPerformingVideos.map(v => v.hashtags.length))}`
+          },
+          commonWords: findCommonWords(topPerformingVideos.map(v => v.title + ' ' + v.description)),
+          commonHashtags: findCommonHashtags(topPerformingVideos.map(v => v.hashtags))
+        };
+        
+        // SEO 분석
+        const seoAnalysis = {
+          titleOptimization: {
+            average: Math.round(titleLengths.reduce((a, b) => a + b, 0) / titleLengths.length),
+            recommendation: "YouTube 검색을 위한 최적 제목 길이는 60-70자입니다. 제목에 핵심 키워드를 포함하세요."
+          },
+          descriptionOptimization: {
+            average: Math.round(descriptionLengths.reduce((a, b) => a + b, 0) / descriptionLengths.length),
+            recommendation: "설명란은 최소 200자 이상이 권장됩니다. 핵심 키워드를 2-3회 포함하고 자연스럽게 작성하세요."
+          },
+          hashtagUsage: {
+            average: (hashtagCounts.reduce((a, b) => a + b, 0) / hashtagCounts.length).toFixed(1),
+            recommendation: "3-5개의 관련성 높은 해시태그가 최적입니다. 트렌딩 해시태그와 구체적인 니치 해시태그를 조합하세요."
+          },
+          keywordConsistency: {
+            topKeywords: findTopKeywords(processedVideos.map(v => v.title + ' ' + v.description)),
+            recommendation: "채널 전체에서 일관된 키워드를 사용하면 유튜브 알고리즘이 채널의 주제를 파악하는 데 도움이 됩니다."
+          },
+          uploadStrategy: {
+            frequency: uploadFrequency,
+            recommendation: "일관된 업로드 일정은 시청자 참여도와 알고리즘 노출을 높이는 데 중요합니다."
+          }
+        };
+        
         const result = {
           type: parsedUrl.isShorts ? 'channel_shorts' : 'channel',
           channelInfo: {
@@ -65,18 +131,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             statistics: channelData.statistics,
             contentDetails: channelData.contentDetails
           },
-          videos: videos.map((video: any) => ({
-            id: video.id,
-            title: video.snippet.title,
-            description: video.snippet.description,
-            publishedAt: video.snippet.publishedAt,
-            thumbnails: video.snippet.thumbnails,
-            viewCount: video.statistics?.viewCount || '0',
-            likeCount: video.statistics?.likeCount || '0',
-            commentCount: video.statistics?.commentCount || '0',
-            duration: parseIsoDuration(video.contentDetails.duration),
-            isShort: isShort(video.contentDetails.duration),
-            hashtags: extractHashtags(video.snippet.title + ' ' + video.snippet.description)
+          videos: processedVideos.map(v => ({
+            ...v,
+            viewCount: v.viewCount.toString(),
+            likeCount: v.likeCount.toString(),
+            commentCount: v.commentCount.toString()
           })),
           uploadFrequency,
           popularHashtags: allHashtags.slice(0, 8),
@@ -84,7 +143,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
             videos
               .filter((v: any) => isShort(v.contentDetails.duration))
               .map((v: any) => v.snippet.publishedAt)
-          )
+          ),
+          topPerformingVideos: topPerformingVideos.map(v => ({
+            ...v,
+            viewCount: v.viewCount.toString(),
+            likeCount: v.likeCount.toString(),
+            commentCount: v.commentCount.toString()
+          })),
+          commonFeatures,
+          seoAnalysis
         };
         
         // Save analysis to database
@@ -328,4 +395,98 @@ function formatSrtTime(seconds: number): string {
   const ms = Math.floor((seconds % 1) * 1000);
   
   return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')},${ms.toString().padStart(3, '0')}`;
+}
+
+// 텍스트 배열에서 공통 단어 찾기 (제목과 설명)
+function findCommonWords(texts: string[]): string[] {
+  // 불용어 (stopwords) 목록 - 분석에서 제외할 흔한 단어들
+  const stopwords = new Set([
+    'the', 'and', 'a', 'to', 'of', 'in', 'is', 'it', 'that', 'for', 'on', 'with', 'as', 'this', 'by', 'are', 'was', 'be',
+    'i', 'you', 'your', 'my', 'we', 'they', 'their', 'our', 'he', 'she', 'his', 'her', 'its', 'new', 'more', 'one', 'an',
+    '이', '그', '저', '나', '너', '우리', '그들', '그것', '이것', '저것', '는', '은', '이', '가', '을', '를', '에', '의'
+  ]);
+  
+  // 모든 비디오에서 단어 추출 및 빈도 계산
+  const wordFreq: Record<string, number> = {};
+  
+  // 각 텍스트에서 단어 추출
+  texts.forEach(text => {
+    // 특수문자 제거 후 단어 분리
+    const words = text
+      .toLowerCase()
+      .replace(/[^\w\s\u00C0-\u1FFF\u3040-\u9FFF]/g, ' ')
+      .split(/\s+/)
+      .filter(word => word.length > 2 && !stopwords.has(word));
+    
+    // 이 비디오의 고유 단어만 고려 (중복 제거)
+    const uniqueWords = [...new Set(words)];
+    
+    // 단어 빈도 계산
+    uniqueWords.forEach(word => {
+      wordFreq[word] = (wordFreq[word] || 0) + 1;
+    });
+  });
+  
+  // 일정 비율(40% 이상)의 비디오에서 등장하는 단어만 추출
+  const threshold = Math.ceil(texts.length * 0.4);
+  
+  return Object.entries(wordFreq)
+    .filter(([_, count]) => count >= threshold)
+    .sort(([_, countA], [__, countB]) => countB - countA)
+    .slice(0, 5)
+    .map(([word]) => word);
+}
+
+// 해시태그 배열에서 공통 해시태그 찾기
+function findCommonHashtags(hashtags: string[][]): string[] {
+  // 모든 해시태그의 빈도 계산
+  const hashtagFreq: Record<string, number> = {};
+  
+  hashtags.forEach(videoHashtags => {
+    // 비디오별로 중복 제거 (같은 비디오에서 동일한 해시태그가 반복될 경우 1번만 계산)
+    const uniqueHashtags = [...new Set(videoHashtags)];
+    
+    uniqueHashtags.forEach(tag => {
+      hashtagFreq[tag] = (hashtagFreq[tag] || 0) + 1;
+    });
+  });
+  
+  // 30% 이상의 비디오에서 사용된 해시태그만 추출
+  const threshold = Math.ceil(hashtags.length * 0.3);
+  
+  return Object.entries(hashtagFreq)
+    .filter(([_, count]) => count >= threshold)
+    .sort(([_, countA], [__, countB]) => countB - countA)
+    .slice(0, 5)
+    .map(([tag]) => tag);
+}
+
+// 주요 키워드 추출
+function findTopKeywords(texts: string[]): string[] {
+  // 불용어 (stopwords) 목록
+  const stopwords = new Set([
+    'the', 'and', 'a', 'to', 'of', 'in', 'is', 'it', 'that', 'for', 'on', 'with', 'as', 'this', 'by', 'are', 'was', 'be',
+    'i', 'you', 'your', 'my', 'we', 'they', 'their', 'our', 'he', 'she', 'his', 'her', 'its', 'new', 'more', 'one', 'an',
+    '이', '그', '저', '나', '너', '우리', '그들', '그것', '이것', '저것', '는', '은', '이', '가', '을', '를', '에', '의'
+  ]);
+  
+  // 모든 텍스트에서 단어 추출 및 빈도 계산
+  const wordFreq: Record<string, number> = {};
+  
+  // 단어 추출 및 빈도 계산
+  const allWords = texts.join(' ')
+    .toLowerCase()
+    .replace(/[^\w\s\u00C0-\u1FFF\u3040-\u9FFF]/g, ' ')
+    .split(/\s+/)
+    .filter(word => word.length > 2 && !stopwords.has(word));
+  
+  allWords.forEach(word => {
+    wordFreq[word] = (wordFreq[word] || 0) + 1;
+  });
+  
+  // 빈도순 정렬 및 상위 10개 추출
+  return Object.entries(wordFreq)
+    .sort(([_, countA], [__, countB]) => countB - countA)
+    .slice(0, 10)
+    .map(([word]) => word);
 }
