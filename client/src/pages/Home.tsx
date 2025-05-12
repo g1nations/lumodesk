@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link } from 'wouter';
+import { useState, useEffect } from 'react';
+import { Link, useLocation } from 'wouter';
 import UrlInput from '@/components/UrlInput';
 import ApiKeySettings from '@/components/ApiKeySettings';
 import ChannelAnalysis from '@/components/ChannelAnalysis';
@@ -23,7 +23,8 @@ export default function Home() {
   );
   const [analysisData, setAnalysisData] = useState<any>(null);
   const { toast } = useToast();
-
+  const [location] = useLocation();
+  
   const {
     mutate,
     isPending: isLoading,
@@ -78,6 +79,31 @@ export default function Home() {
     setAnalysisData(null);
     mutate();
   };
+  
+  // URL 쿼리 파라미터 처리 
+  useEffect(() => {
+    // URL에서 쿼리 파라미터 읽기
+    const queryParams = new URLSearchParams(window.location.search);
+    const urlParam = queryParams.get('url');
+    
+    if (urlParam) {
+      setYoutubeUrl(urlParam);
+      
+      // URL이 쇼츠인 경우 자동으로 쇼츠 탭으로 변경
+      if (urlParam.includes('/shorts/')) {
+        setActiveTab('shorts');
+      }
+      
+      // 자동으로 분석 시작 (API 키가 있는 경우)
+      if (apiKey) {
+        // 약간의 딜레이 후 분석 시작
+        const timer = setTimeout(() => {
+          handleAnalyze();
+        }, 500);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [location, apiKey]);
 
   const renderResults = () => {
     if (isLoading) return null;

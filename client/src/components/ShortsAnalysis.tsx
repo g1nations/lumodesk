@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { formatNumber, formatDate } from '@/lib/youtube';
+import { formatNumber, formatDate, calculateEngagementRate } from '@/lib/youtube';
 import { Calendar, Eye, ThumbsUp } from 'lucide-react';
 
 interface ShortsAnalysisProps {
@@ -60,7 +60,16 @@ export default function ShortsAnalysis({ data }: ShortsAnalysisProps) {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {topShorts.map((short: any, index: number) => (
-              <div key={index} className="border border-gray-200 rounded-lg overflow-hidden">
+              <a 
+                href={`https://www.youtube.com/shorts/${short.id}`}
+                target="_blank" 
+                rel="noopener noreferrer"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = `/analyze?url=https://www.youtube.com/shorts/${short.id}`;
+                }}
+                className="block border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition-shadow"
+              >
                 <div className="aspect-[9/16] relative bg-gray-100">
                   {short.thumbnails?.high?.url && (
                     <img 
@@ -86,6 +95,18 @@ export default function ShortsAnalysis({ data }: ShortsAnalysisProps) {
                       {formatNumber(parseInt(short.likeCount || 0))}
                     </span>
                   </div>
+                  <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-gray-500">
+                    <div className="bg-gray-50 p-1.5 rounded">
+                      <span className="font-semibold">시청 시간:</span> {short.duration}초
+                    </div>
+                    <div className="bg-gray-50 p-1.5 rounded">
+                      <span className="font-semibold">참여도:</span> {calculateEngagementRate(
+                        parseInt(short.viewCount || '0'),
+                        parseInt(short.likeCount || '0'),
+                        parseInt(short.commentCount || '0')
+                      )}
+                    </div>
+                  </div>
                   {short.hashtags && short.hashtags.length > 0 && (
                     <div className="mt-2 flex flex-wrap gap-1">
                       {short.hashtags.slice(0, 2).map((tag: string, tagIndex: number) => (
@@ -96,7 +117,7 @@ export default function ShortsAnalysis({ data }: ShortsAnalysisProps) {
                     </div>
                   )}
                 </div>
-              </div>
+              </a>
             ))}
           </div>
           
