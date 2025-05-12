@@ -133,18 +133,20 @@ export function extractHashtags(text: string): string[] {
 }
 
 // Format date for display (e.g. "Jan 1, 2020")
-export function formatDate(dateString: string): string {
-  const date = new Date(dateString);
+export function formatDate(dateInput: string | Date): string {
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
   return date.toLocaleDateString('en-US', { 
     year: 'numeric', 
     month: 'short', 
-    day: 'numeric' 
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
   });
 }
 
 // Format date for display with just month and year (e.g. "Jan 2020")
-export function formatMonthYear(dateString: string): string {
-  const date = new Date(dateString);
+export function formatMonthYear(dateInput: string | Date): string {
+  const date = typeof dateInput === 'string' ? new Date(dateInput) : dateInput;
   return date.toLocaleDateString('en-US', { 
     year: 'numeric', 
     month: 'short'

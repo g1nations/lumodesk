@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'wouter';
 import UrlInput from '@/components/UrlInput';
 import ApiKeySettings from '@/components/ApiKeySettings';
 import ChannelAnalysis from '@/components/ChannelAnalysis';
@@ -6,8 +7,9 @@ import ShortsAnalysis from '@/components/ShortsAnalysis';
 import IndividualShortAnalysis from '@/components/IndividualShortAnalysis';
 import ErrorState from '@/components/ErrorState';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart, Film, Smartphone } from 'lucide-react';
+import { BarChart, Film, Smartphone, History } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { API_KEY_STORAGE_KEY } from '@/lib/youtube';
 import { useToast } from '@/hooks/use-toast';
@@ -103,7 +105,15 @@ export default function Home() {
   return (
     <div className="container mx-auto px-4 py-6 max-w-6xl">
       {/* Header */}
-      <header className="text-center mb-8">
+      <header className="mb-8">
+        <div className="flex justify-end mb-2">
+          <Link to="/history">
+            <Button variant="outline" size="sm" className="text-[#FF0000] border-[#FF0000] hover:bg-[#FF0000] hover:text-white">
+              <History className="w-4 h-4 mr-2" />
+              View Analysis History
+            </Button>
+          </Link>
+        </div>
         <div className="flex items-center justify-center mb-2">
           <svg className="text-[#FF0000] w-8 h-8 mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
             <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z" />
@@ -111,7 +121,7 @@ export default function Home() {
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800">MockTube Scanner</h1>
           <span className="ml-3 text-xs font-medium bg-[#FF0000] text-white px-2 py-0.5 rounded">BETA</span>
         </div>
-        <p className="text-gray-600 text-lg">Uncover any YouTube channel's strategy in one click</p>
+        <p className="text-center text-gray-600 text-lg">Uncover any YouTube channel's strategy in one click</p>
       </header>
 
       {/* Main Card */}

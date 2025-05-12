@@ -115,13 +115,7 @@ export default function History() {
                   {item.url}
                 </p>
                 <p className="text-xs text-gray-400 mt-2">
-                  Analyzed on {new Date(item.createdAt).toLocaleDateString('en-US', { 
-                    year: 'numeric', 
-                    month: 'short', 
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit'
-                  })}
+                  Analyzed on {formatDate(item.createdAt)}
                 </p>
               </CardContent>
             </Link>

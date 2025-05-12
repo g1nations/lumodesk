@@ -8,6 +8,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import ChannelAnalysis from '@/components/ChannelAnalysis';
 import ShortsAnalysis from '@/components/ShortsAnalysis';
 import IndividualShortAnalysis from '@/components/IndividualShortAnalysis';
+import { formatDate } from '@/lib/youtube';
 import { AnalysisHistory } from '@shared/schema';
 
 export default function AnalysisDetail() {
@@ -93,13 +94,7 @@ export default function AnalysisDetail() {
             <h1 className="text-3xl font-bold text-gray-800">{data.title}</h1>
             <div className="flex items-center justify-center mt-2 text-sm text-gray-500">
               <Clock className="h-4 w-4 mr-1" />
-              Analyzed on {new Date(data.createdAt).toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'short', 
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-              })}
+              Analyzed on {formatDate(data.createdAt)}
             </div>
           </div>
         ) : null}
