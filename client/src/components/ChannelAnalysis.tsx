@@ -26,9 +26,10 @@ export default function ChannelAnalysis({ data }: ChannelAnalysisProps) {
   const totalViews = parseInt(channelInfo.statistics.viewCount || '0');
   const totalSubs = parseInt(channelInfo.statistics.subscriberCount || '0');
   
-  // 날짜 필터링을 위한 상태
+  // 날짜 필터링 및 필터 뷰를 위한 상태
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
+  const [showFilteredView, setShowFilteredView] = useState<boolean>(false);
   
   // 날짜 선택 상태에 따라 비디오 필터링
   const filteredVideos = videos.filter((v: any) => {
