@@ -346,7 +346,17 @@ export default function ChannelAnalysis({ data, hideSEOAnalysis = false }: Chann
                 
                 <div className="space-y-4">
                   {filteredVideos
-                    .sort((a: any, b: any) => parseInt(b.viewCount) - parseInt(a.viewCount))
+                    .sort((a: any, b: any) => {
+                      // 정렬 옵션에 따라 다른 정렬 적용
+                      if (sortOption === "views") {
+                        return parseInt(b.viewCount) - parseInt(a.viewCount); // 조회수 높은 순
+                      } else if (sortOption === "latest") {
+                        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(); // 최신순
+                      } else if (sortOption === "likes") {
+                        return parseInt(b.likeCount) - parseInt(a.likeCount); // 좋아요 많은 순
+                      }
+                      return parseInt(b.viewCount) - parseInt(a.viewCount); // 기본: 조회수 순
+                    })
                     .slice(0, 10)
                     .map((video: any, index: number) => (
                     <a 
@@ -384,13 +394,26 @@ export default function ChannelAnalysis({ data, hideSEOAnalysis = false }: Chann
             {videos.length > 0 && showFilteredView && (
               <div className="mt-8">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-bold">
-                    {fromDate && toDate 
-                      ? `${formatDate(fromDate)} ~ ${formatDate(toDate)} 기간의 쇼츠`
-                      : fromDate 
-                        ? `${formatDate(fromDate)} 이후의 쇼츠` 
-                        : `${formatDate(toDate || new Date())} 이전의 쇼츠`}
-                  </h3>
+                  <div className="flex items-center gap-4">
+                    <h3 className="text-lg font-bold">
+                      {fromDate && toDate 
+                        ? `${formatDate(fromDate)} ~ ${formatDate(toDate)} 기간의 쇼츠`
+                        : fromDate 
+                          ? `${formatDate(fromDate)} 이후의 쇼츠` 
+                          : `${formatDate(toDate || new Date())} 이전의 쇼츠`}
+                    </h3>
+                    <div className="flex items-center">
+                      <select 
+                        className="text-sm border border-gray-300 rounded px-2 py-1"
+                        onChange={(e) => setSortOption(e.target.value)}
+                        value={sortOption}
+                      >
+                        <option value="views">조회수 순</option>
+                        <option value="latest">최신순</option>
+                        <option value="likes">좋아요 순</option>
+                      </select>
+                    </div>
+                  </div>
                   <Button 
                     variant="outline"
                     onClick={() => setShowFilteredView(false)}
@@ -447,7 +470,17 @@ export default function ChannelAnalysis({ data, hideSEOAnalysis = false }: Chann
                 
                 <div className="space-y-4">
                   {filteredVideos
-                    .sort((a: any, b: any) => parseInt(b.viewCount) - parseInt(a.viewCount))
+                    .sort((a: any, b: any) => {
+                      // 정렬 옵션에 따라 다른 정렬 적용
+                      if (sortOption === "views") {
+                        return parseInt(b.viewCount) - parseInt(a.viewCount); // 조회수 높은 순
+                      } else if (sortOption === "latest") {
+                        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(); // 최신순
+                      } else if (sortOption === "likes") {
+                        return parseInt(b.likeCount) - parseInt(a.likeCount); // 좋아요 많은 순
+                      }
+                      return parseInt(b.viewCount) - parseInt(a.viewCount); // 기본: 조회수 순
+                    })
                     .map((video: any, index: number) => (
                     <a 
                       href={`/${video.isShort ? 'shorts' : 'videos'}/${video.id}`} 
