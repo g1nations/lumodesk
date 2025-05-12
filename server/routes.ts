@@ -1,4 +1,4 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
@@ -8,6 +8,7 @@ import {
   getChannelVideos, 
   analyzeShortsVideo 
 } from "./youtube";
+import { InsertAnalysisHistory } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // API endpoint for analyzing YouTube URLs
@@ -85,21 +86,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
           )
         };
         
+        // Save analysis to database
+        try {
+          const analysisEntry: InsertAnalysisHistory = {
+            url,
+            youtubeId: channelData.id,
+            type: result.type,
+            title: channelData.snippet.title,
+            thumbnailUrl: channelData.snippet.thumbnails?.high?.url || channelData.snippet.thumbnails?.medium?.url || '',
+            viewCount: channelData.statistics?.viewCount || '0',
+            resultData: result as any,
+            apiKey
+          };
+          
+          await storage.saveAnalysis(analysisEntry);
+        } catch (dbError) {
+          console.error('Error saving analysis to database:', dbError);
+          // Continue even if saving to DB fails - don't block the response
+        }
+        
         return res.json(result);
       } else if (parsedUrl.type === 'shorts' || parsedUrl.type === 'video') {
         // Analyze individual video/short
         const videoAnalysis = await analyzeShortsVideo(parsedUrl.id!, apiKey);
         
-        return res.json({
+        const result = {
           type: 'shorts',
           videoInfo: videoAnalysis
-        });
+        };
+        
+        // Save analysis to database
+        try {
+          const analysisEntry: InsertAnalysisHistory = {
+            url,
+            youtubeId: videoAnalysis.id,
+            type: 'shorts',
+            title: videoAnalysis.title || '',
+            thumbnailUrl: videoAnalysis.thumbnails?.high?.url || videoAnalysis.thumbnails?.medium?.url || '',
+            viewCount: videoAnalysis.viewCount || '0',
+            resultData: result as any,
+            apiKey
+          };
+          
+          await storage.saveAnalysis(analysisEntry);
+        } catch (dbError) {
+          console.error('Error saving analysis to database:', dbError);
+          // Continue even if saving to DB fails - don't block the response
+        }
+        
+        return res.json(result);
       } else {
         return res.status(400).json({ message: 'Unsupported YouTube URL format' });
       }
     } catch (error: any) {
       console.error('Error analyzing YouTube URL:', error);
       return res.status(400).json({ message: error.message || 'Failed to analyze YouTube URL' });
+    }
+  });
+  
+  // Get recent analyses
+  app.get('/api/history', async (req, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
+      const analyses = await storage.getRecentAnalyses(limit);
+      return res.json(analyses);
+    } catch (error: any) {
+      console.error('Error fetching analysis history:', error);
+      return res.status(500).json({ message: error.message || 'Failed to fetch analysis history' });
+    }
+  });
+  
+  // Get analysis by ID
+  app.get('/api/history/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const analysis = await storage.getAnalysisById(id);
+      
+      if (!analysis) {
+        return res.status(404).json({ message: 'Analysis not found' });
+      }
+      
+      return res.json(analysis);
+    } catch (error: any) {
+      console.error('Error fetching analysis:', error);
+      return res.status(500).json({ message: error.message || 'Failed to fetch analysis' });
     }
   });
 

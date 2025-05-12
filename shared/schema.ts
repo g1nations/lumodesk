@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -78,17 +78,45 @@ export interface ShortsAnalysisResult {
 
 export type AnalysisResult = ChannelAnalysisResult | ShortsAnalysisResult;
 
-// Default database schema
+// Database Schema
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
   password: text("password").notNull(),
 });
 
+export const analysisHistory = pgTable("analysis_history", {
+  id: serial("id").primaryKey(),
+  url: text("url").notNull(),
+  youtubeId: text("youtube_id").notNull(),
+  type: text("type").notNull(), // 'channel', 'channel_shorts', or 'shorts'
+  title: text("title").notNull(),
+  thumbnailUrl: text("thumbnail_url"),
+  viewCount: text("view_count"),
+  resultData: jsonb("result_data").notNull(), // Store the full analysis result as JSON
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  apiKey: text("api_key").notNull(),
+});
+
+// Relations setup
+export const relations = {
+  // Add relations here if needed
+};
+
+// Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
   password: true,
 });
 
+export const insertAnalysisHistorySchema = createInsertSchema(analysisHistory).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
+
+export type InsertAnalysisHistory = z.infer<typeof insertAnalysisHistorySchema>;
+export type AnalysisHistory = typeof analysisHistory.$inferSelect;
