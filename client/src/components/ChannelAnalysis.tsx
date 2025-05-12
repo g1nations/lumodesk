@@ -2,6 +2,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import {
   formatNumber,
   formatMonthYear,
+  formatDate,
   calculateEngagementRate
 } from '@/lib/youtube';
 import { Chart } from '@/components/ui/chart';

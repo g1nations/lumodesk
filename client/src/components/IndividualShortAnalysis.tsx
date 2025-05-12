@@ -161,6 +161,49 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
                 </DropdownMenu>
               )}
             </div>
+            
+            {/* SEO Analysis */}
+            {data.seoAnalysis && (
+              <div className="mt-6 p-5 bg-yellow-50 rounded-lg">
+                <h3 className="text-lg font-bold mb-3">SEO 분석</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center bg-white p-3 rounded-md">
+                    <div className="flex-shrink-0 w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-yellow-800 text-lg font-bold">{data.seoAnalysis.titleOptimization.length}</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold">제목 최적화</h4>
+                      <p className="text-sm text-gray-600">{data.seoAnalysis.titleOptimization.recommendation}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center bg-white p-3 rounded-md">
+                    <div className="flex-shrink-0 w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-blue-800 text-lg font-bold">{data.seoAnalysis.descriptionOptimization.length}</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold">설명 최적화</h4>
+                      <p className="text-sm text-gray-600">{data.seoAnalysis.descriptionOptimization.recommendation}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center bg-white p-3 rounded-md">
+                    <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center mr-3">
+                      <span className="text-green-800 text-lg font-bold">{data.seoAnalysis.hashtagUsage.count}</span>
+                    </div>
+                    <div>
+                      <h4 className="font-semibold">해시태그 활용</h4>
+                      <p className="text-sm text-gray-600">{data.seoAnalysis.hashtagUsage.recommendation}</p>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-white p-3 rounded-md">
+                    <h4 className="font-semibold">키워드 추천</h4>
+                    <p className="text-sm text-gray-600 mt-1">{data.seoAnalysis.keywordRecommendation}</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </Card>
