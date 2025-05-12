@@ -32,6 +32,9 @@ export default function ChannelAnalysis({ data, hideSEOAnalysis = false }: Chann
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
   const [showFilteredView, setShowFilteredView] = useState<boolean>(false);
   
+  // 정렬 옵션을 위한 상태
+  const [sortOption, setSortOption] = useState<string>("views");
+  
   // 날짜 선택 상태에 따라 비디오 필터링
   const filteredVideos = videos.filter((v: any) => {
     if (!fromDate && !toDate) return true;
@@ -210,7 +213,20 @@ export default function ChannelAnalysis({ data, hideSEOAnalysis = false }: Chann
             {videos.length > 0 && !showFilteredView && (
               <div className="mt-8">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-bold">Top Performing Shorts</h3>
+                  <div className="flex items-center gap-4">
+                    <h3 className="text-lg font-bold">Top Performing Shorts</h3>
+                    <div className="flex items-center">
+                      <select 
+                        className="text-sm border border-gray-300 rounded px-2 py-1"
+                        onChange={(e) => setSortOption(e.target.value)}
+                        value={sortOption}
+                      >
+                        <option value="views">조회수 순</option>
+                        <option value="latest">최신순</option>
+                        <option value="likes">좋아요 순</option>
+                      </select>
+                    </div>
+                  </div>
                   <div className="flex gap-2">
                     <div className="flex items-center space-x-2">
                       <label className="text-sm font-medium">From:</label>
