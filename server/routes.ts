@@ -100,33 +100,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
           commonHashtags: findCommonHashtags(topPerformingVideos.map(v => v.hashtags))
         };
         
-        // SEO 분석 - 고정된 샘플 점수 사용
+        // 쇼츠 여부 확인 (채널의 모든 비디오의 50% 이상이 쇼츠인 경우 쇼츠 채널로 간주)
+        const shortsCount = processedVideos.filter(v => v.isShort).length;
+        const isMainlyShorts = shortsCount / processedVideos.length >= 0.5;
+        
+        // 개선된 SEO 분석 - 계산된 점수 사용
+        const titleScore = calculateTitleScore(titleLengths, isMainlyShorts);
+        const descriptionScore = calculateDescriptionScore(descriptionLengths, isMainlyShorts);
+        const hashtagScore = calculateHashtagScore(hashtagCounts, isMainlyShorts);
+        const keywordScore = calculateKeywordConsistencyScore(processedVideos.map(v => v.title + ' ' + v.description), isMainlyShorts);
+        const uploadScore = calculateUploadStrategyScore(processedVideos.map(v => new Date(v.publishedAt)));
+        
+        // 평균 점수 계산
+        const overallScore = Math.round((titleScore + descriptionScore + hashtagScore + keywordScore + uploadScore) / 5 * 10) / 10;
+        
         const seoAnalysis = {
           titleOptimization: {
             average: Math.round(titleLengths.reduce((a, b) => a + b, 0) / titleLengths.length),
-            recommendation: "YouTube 검색을 위한 최적 제목 길이는 60-70자입니다. 제목에 핵심 키워드를 포함하세요.",
-            score: 4.5 // 제목 최적화 점수 (5점 만점)
+            recommendation: isMainlyShorts
+              ? "Shorts 최적 제목 길이는 30-50자입니다. 호기심을 자극하는 핵심 키워드를 포함하세요."
+              : "YouTube 검색을 위한 최적 제목 길이는 60-70자입니다. 제목에 핵심 키워드를 포함하세요.",
+            score: titleScore // 제목 최적화 점수 (5점 만점)
           },
           descriptionOptimization: {
             average: Math.round(descriptionLengths.reduce((a, b) => a + b, 0) / descriptionLengths.length),
-            recommendation: "설명란은 최소 200자 이상이 권장됩니다. 핵심 키워드를 2-3회 포함하고 자연스럽게 작성하세요.",
-            score: 3.5 // 설명 최적화 점수 (5점 만점)
+            recommendation: isMainlyShorts
+              ? "Shorts는 30-100자의 간결한 설명과 1-2개의 핵심 해시태그가 효과적입니다."
+              : "일반 동영상은 설명란에 최소 200자 이상이 권장됩니다. 핵심 키워드를 2-3회 포함하고 자연스럽게 작성하세요.",
+            score: descriptionScore // 설명 최적화 점수 (5점 만점)
           },
           hashtagUsage: {
             average: (hashtagCounts.reduce((a, b) => a + b, 0) / hashtagCounts.length).toFixed(1),
             recommendation: "3-5개의 관련성 높은 해시태그가 최적입니다. 트렌딩 해시태그와 구체적인 니치 해시태그를 조합하세요.",
-            score: 4.0 // 해시태그 활용 점수 (5점 만점)
+            score: hashtagScore // 해시태그 활용 점수 (5점 만점)
           },
           keywordConsistency: {
             topKeywords: findTopKeywords(processedVideos.map(v => v.title + ' ' + v.description)),
             recommendation: "채널 전체에서 일관된 키워드를 사용하면 유튜브 알고리즘이 채널의 주제를 파악하는 데 도움이 됩니다.",
-            score: 3.5 // 키워드 일관성 점수 (5점 만점)
+            score: keywordScore // 키워드 일관성 점수 (5점 만점)
           },
           uploadStrategy: {
             frequency: uploadFrequency,
             recommendation: "일관된 업로드 일정은 시청자 참여도와 알고리즘 노출을 높이는 데 중요합니다.",
-            score: 4.0 // 업로드 전략 점수 (5점 만점)
-          }
+            score: uploadScore // 업로드 전략 점수 (5점 만점)
+          },
+          overallScore: overallScore // 전체 SEO 점수 (5점 만점)
         };
         
         const result = {
@@ -189,29 +207,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const descriptionLength = videoAnalysis.description?.length || 0;
         const hashtagCount = videoAnalysis.hashtags?.length || 0;
         
+        // 개선된 점수 계산 함수 사용
+        const titleScore = calculateTitleScore([titleLength], true); // true = Shorts
+        const descriptionScore = calculateDescriptionScore([descriptionLength], true);
+        const hashtagScore = calculateHashtagScore([hashtagCount], true);
+        
+        // 영상이 하나라 키워드 일관성과 업로드 전략은 평가하기 어려움
+        const keywordScore = 3.0; // 기본값
+        const uploadScore = 3.0; // 기본값
+        
+        // 평균 점수 계산
+        const overallScore = Math.round((titleScore + descriptionScore + hashtagScore + keywordScore + uploadScore) / 5 * 10) / 10;
+        
         // SEO 분석 추가
         const seoAnalysis = {
           titleOptimization: {
             length: titleLength,
-            recommendation: titleLength < 30 ? 
-              "제목이 너무 짧습니다. 더 설명적인 제목을 사용하세요." : 
-              (titleLength > 70 ? "제목이 너무 깁니다. 핵심만 간결하게 유지하세요." : 
-              "제목 길이가 적절합니다.")
+            score: titleScore,
+            recommendation: "Shorts 최적 제목 길이는 30-50자입니다. 호기심을 자극하는 핵심 키워드를 포함하세요."
           },
           descriptionOptimization: {
             length: descriptionLength,
-            recommendation: descriptionLength < 100 ? 
-              "설명이 너무 짧습니다. 더 자세한 설명을 추가하면 검색 엔진에 도움이 됩니다." : 
-              "설명 길이가 적절합니다."
+            score: descriptionScore,
+            recommendation: "Shorts는 30-100자의 간결한 설명과 1-2개의 핵심 해시태그가 효과적입니다."
           },
           hashtagUsage: {
             count: hashtagCount,
-            recommendation: hashtagCount < 3 ? 
-              "해시태그가 부족합니다. 관련 해시태그를 3-5개 추가하세요." : 
-              (hashtagCount > 10 ? "해시태그가 너무 많습니다. 가장 관련성 높은 해시태그 5개 정도로 줄이세요." : 
-              "해시태그 수가 적절합니다.")
+            score: hashtagScore,
+            recommendation: "Shorts에는 3-5개의 관련성 높은 해시태그가 최적입니다. 트렌딩 해시태그와 니치 해시태그를 조합하세요."
           },
-          keywordRecommendation: "제목과 설명에 일관된 키워드를 포함시키고, 첫 문장에 핵심 키워드를 배치하세요."
+          keywordConsistency: {
+            score: keywordScore,
+            recommendation: "제목과 설명에 일관된 키워드를 포함시키고, 첫 문장에 핵심 키워드를 배치하세요."
+          },
+          uploadStrategy: {
+            score: uploadScore,
+            recommendation: "일관된 업로드 주기를 유지하고 시청자 참여도가 높은 시간대에 업로드하세요."
+          },
+          overallScore: overallScore
         };
         
         const result = {
