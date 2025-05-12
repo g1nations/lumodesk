@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { formatNumber, formatDate, calculateEngagementRate } from '@/lib/youtube';
 import { Calendar, Eye, ThumbsUp } from 'lucide-react';
@@ -7,6 +8,8 @@ interface ShortsAnalysisProps {
 }
 
 export default function ShortsAnalysis({ data }: ShortsAnalysisProps) {
+  // 정렬 옵션을 위한 상태
+  const [sortOption, setSortOption] = useState<string>("views");
   // Only proceed if we have valid shorts data
   if (!data?.videos) return null;
   
@@ -24,9 +27,19 @@ export default function ShortsAnalysis({ data }: ShortsAnalysisProps) {
   const totalDuration = shortsVideos.reduce((sum: number, short: any) => sum + short.duration, 0);
   const avgDuration = Math.round(totalDuration / totalShorts);
   
-  // Sort shorts by view count to get top performers (10개로 확장)
+  // Sort shorts based on selected option
   const topShorts = [...shortsVideos]
-    .sort((a, b) => parseInt(b.viewCount || 0) - parseInt(a.viewCount || 0))
+    .sort((a, b) => {
+      // 정렬 옵션에 따라 다른 정렬 적용
+      if (sortOption === "views") {
+        return parseInt(b.viewCount || 0) - parseInt(a.viewCount || 0); // 조회수 높은 순
+      } else if (sortOption === "latest") {
+        return new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime(); // 최신순
+      } else if (sortOption === "likes") {
+        return parseInt(b.likeCount || 0) - parseInt(a.likeCount || 0); // 좋아요 많은 순
+      }
+      return parseInt(b.viewCount || 0) - parseInt(a.viewCount || 0); // 기본: 조회수 순
+    })
     .slice(0, 10);
 
   // 개별 쇼츠 분석 함수
@@ -119,7 +132,20 @@ export default function ShortsAnalysis({ data }: ShortsAnalysisProps) {
           </div>
           
           {/* Top Performing Shorts */}
-          <h3 className="text-lg font-medium mb-4">Top Performing Shorts</h3>
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-medium">Top Performing Shorts</h3>
+            <div className="flex items-center">
+              <select 
+                className="text-sm border border-gray-300 rounded px-2 py-1"
+                onChange={(e) => setSortOption(e.target.value)}
+                value={sortOption}
+              >
+                <option value="views">조회수 순</option>
+                <option value="latest">최신순</option>
+                <option value="likes">좋아요 순</option>
+              </select>
+            </div>
+          </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {topShorts.map((short: any, index: number) => (
