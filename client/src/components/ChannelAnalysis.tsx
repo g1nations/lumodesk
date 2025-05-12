@@ -208,28 +208,134 @@ export default function ChannelAnalysis({ data }: ChannelAnalysisProps) {
             </div>
             
             {/* Top Performing Videos */}
-            {data.topPerformingVideos && data.topPerformingVideos.length > 0 && (
+            {videos.length > 0 && (
               <div className="mt-8">
-                <h3 className="text-lg font-bold mb-4">Top 10 Performing Videos</h3>
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-bold">Top Performing Shorts</h3>
+                  <div className="flex gap-2">
+                    <div className="flex items-center space-x-2">
+                      <label className="text-sm font-medium">From:</label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-[130px] pl-3 text-left font-normal",
+                              !fromDate && "text-muted-foreground"
+                            )}
+                          >
+                            {fromDate ? (
+                              formatDate(fromDate)
+                            ) : (
+                              <span>시작 날짜</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={fromDate}
+                            onSelect={setFromDate}
+                            disabled={(date) =>
+                              (toDate ? date > toDate : false) || date > new Date()
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    
+                    <div className="flex items-center space-x-2">
+                      <label className="text-sm font-medium">To:</label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant={"outline"}
+                            className={cn(
+                              "w-[130px] pl-3 text-left font-normal",
+                              !toDate && "text-muted-foreground"
+                            )}
+                          >
+                            {toDate ? (
+                              formatDate(toDate)
+                            ) : (
+                              <span>종료 날짜</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={toDate}
+                            onSelect={setToDate}
+                            disabled={(date) =>
+                              (fromDate ? date < fromDate : false) || date > new Date()
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                    
+                    {(fromDate || toDate) && (
+                      <Button 
+                        variant="ghost"
+                        onClick={() => {
+                          setFromDate(undefined);
+                          setToDate(undefined);
+                        }}
+                        className="text-xs"
+                      >
+                        초기화
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex gap-4 mb-4">
+                  <div className="bg-white p-3 rounded-lg shadow-sm text-center flex-1">
+                    <h4 className="text-sm font-medium text-gray-600">필터링된 쇼츠</h4>
+                    <div className="text-2xl font-bold mt-1">{filteredShortCount}</div>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg shadow-sm text-center flex-1">
+                    <h4 className="text-sm font-medium text-gray-600">필터링된 일반 영상</h4>
+                    <div className="text-2xl font-bold mt-1">{filteredRegularCount}</div>
+                  </div>
+                </div>
+                
                 <div className="space-y-4">
-                  {data.topPerformingVideos.map((video: any, index: number) => (
-                    <div key={video.id} className="border border-gray-200 rounded-lg p-4 flex items-center">
+                  {filteredVideos
+                    .sort((a: any, b: any) => parseInt(b.viewCount) - parseInt(a.viewCount))
+                    .slice(0, 10)
+                    .map((video: any, index: number) => (
+                    <a 
+                      href={`/${video.isShort ? 'shorts' : 'videos'}/${video.id}`} 
+                      key={video.id} 
+                      className="border border-gray-200 rounded-lg p-4 flex items-center hover:bg-gray-50 transition-colors cursor-pointer"
+                    >
                       <div className="text-2xl font-bold text-gray-400 mr-4">#{index + 1}</div>
-                      <div className="w-20 h-20 flex-shrink-0 mr-4">
+                      <div className="w-20 h-20 flex-shrink-0 mr-4 relative">
                         <img 
                           src={video.thumbnails?.medium?.url || video.thumbnails?.default?.url} 
                           alt={video.title}
                           className="w-full h-full object-cover rounded"
                         />
+                        {video.isShort || video.duration <= 60 ? (
+                          <div className="absolute bottom-0 right-0 bg-red-500 text-white text-xs px-1 py-0.5 rounded">쇼츠</div>
+                        ) : (
+                          <div className="absolute bottom-0 right-0 bg-blue-500 text-white text-xs px-1 py-0.5 rounded">일반</div>
+                        )}
                       </div>
                       <div className="flex-1">
                         <h4 className="font-medium text-gray-800 line-clamp-1">{video.title}</h4>
                         <div className="flex items-center text-sm text-gray-500 mt-1">
-                          <span className="mr-3">{formatNumber(parseInt(video.viewCount))} views</span>
+                          <span className="mr-3">{formatNumber(parseInt(video.viewCount))} 조회수</span>
                           <span>{formatDate(video.publishedAt)}</span>
                         </div>
                       </div>
-                    </div>
+                    </a>
                   ))}
                 </div>
               </div>
