@@ -276,7 +276,7 @@ export default function ApiKeySettings({
               <li>Create a new API key</li>
               <li>Copy and paste the key above</li>
             </ol>
-            <p className="mt-2 text-purple-600">This API key is used for AI-powered SEO analysis and caption parodies using qwen/qwq-32b model</p>
+            <p className="mt-2 text-purple-600">This API key is used for AI-powered SEO analysis and caption parodies using the selected AI model</p>
           </div>
         </CollapsibleContent>
       </Collapsible>

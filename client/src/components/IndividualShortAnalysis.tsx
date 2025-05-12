@@ -1,6 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { formatNumber, formatDate, QWQ_API_KEY_STORAGE_KEY } from '@/lib/youtube';
+import { 
+  formatNumber, 
+  formatDate, 
+  QWQ_API_KEY_STORAGE_KEY,
+  AI_MODEL_STORAGE_KEY,
+  DEFAULT_AI_MODEL 
+} from '@/lib/youtube';
 import { Calendar, Play, Eye, ThumbsUp, MessageSquare, Download, Subtitles, Bot, Sparkles, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -132,6 +138,7 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
   // AI 기반 SEO 분석 실행
   const performAiSeoAnalysis = async () => {
     const apiKey = localStorage.getItem(QWQ_API_KEY_STORAGE_KEY);
+    const model = localStorage.getItem(AI_MODEL_STORAGE_KEY) || DEFAULT_AI_MODEL;
     
     if (!apiKey) {
       toast({
@@ -155,7 +162,8 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
           title,
           description,
           tags: hashtags,
-          apiKey
+          apiKey,
+          model
         }),
       });
       
@@ -204,6 +212,7 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
     }
     
     const apiKey = localStorage.getItem(QWQ_API_KEY_STORAGE_KEY);
+    const model = localStorage.getItem(AI_MODEL_STORAGE_KEY) || DEFAULT_AI_MODEL;
     
     if (!apiKey) {
       toast({
@@ -225,7 +234,8 @@ export default function IndividualShortAnalysis({ data }: IndividualShortAnalysi
         },
         body: JSON.stringify({
           caption: captionText,
-          apiKey
+          apiKey,
+          model
         }),
       });
       
