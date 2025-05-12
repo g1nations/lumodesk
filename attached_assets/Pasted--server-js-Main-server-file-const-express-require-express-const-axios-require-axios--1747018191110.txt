@@ -1,0 +1,493 @@
+// server.js - Main server file
+const express = require('express');
+const axios = require('axios');
+const cheerio = require('cheerio');
+const cors = require('cors');
+const { google } = require('googleapis');
+require('dotenv').config();
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+app.use(express.static('public'));
+app.use(express.urlencoded({ extended: true }));
+
+// Parse YouTube URL and determine analysis type
+function parseYouTubeUrl(url) {
+  try {
+    // URL validation
+    const urlObj = new URL(url);
+    if (!urlObj.hostname.includes('youtube.com') && !urlObj.hostname.includes('youtu.be')) {
+      throw new Error('Not a YouTube URL');
+    }
+    
+    let result = {
+      type: null,
+      id: null,
+      isShorts: false
+    };
+    
+    // Channel ID format (/channel/UC...)
+    if (url.includes('/channel/')) {
+      result.type = 'channel';
+      result.id = url.split('/channel/')[1].split('/')[0].split('?')[0];
+      
+      // Check if it's a channel's Shorts section
+      if (url.includes('/shorts')) {
+        result.isShorts = true;
+      }
+      return result;
+    }
+    
+    // Username format (/@username)
+    if (url.includes('/@')) {
+      result.type = 'username';
+      result.id = url.split('/@')[1].split('/')[0].split('?')[0];
+      
+      // Check if it's a channel's Shorts section
+      if (url.includes('/shorts')) {
+        result.isShorts = true;
+      }
+      return result;
+    }
+    
+    // Legacy custom URL (/c/customname)
+    if (url.includes('/c/')) {
+      result.type = 'custom';
+      result.id = url.split('/c/')[1].split('/')[0].split('?')[0];
+      
+      // Check if it's a channel's Shorts section
+      if (url.includes('/shorts')) {
+        result.isShorts = true;
+      }
+      return result;
+    }
+    
+    // Single video URL - standard format
+    if (url.includes('/watch?v=')) {
+      result.type = 'video';
+      result.id = new URLSearchParams(urlObj.search).get('v');
+      return result;
+    }
+    
+    // Single video URL - short format
+    if (url.includes('youtu.be/')) {
+      result.type = 'video';
+      result.id = url.split('youtu.be/')[1].split('/')[0].split('?')[0];
+      return result;
+    }
+    
+    // Shorts video URL
+    if (url.includes('/shorts/')) {
+      result.type = 'shorts';
+      result.id = url.split('/shorts/')[1].split('/')[0].split('?')[0];
+      return result;
+    }
+    
+    throw new Error('Unsupported YouTube URL format');
+  } catch (error) {
+    if (error.message === 'Invalid URL') {
+      throw new Error('Invalid URL format');
+    }
+    throw error;
+  }
+}
+
+// Get channel info by ID
+async function getChannelById(channelId, apiKey) {
+  try {
+    const youtube = google.youtube({
+      version: 'v3',
+      auth: apiKey
+    });
+    
+    const response = await youtube.channels.list({
+      part: 'snippet,statistics,contentDetails,brandingSettings',
+      id: channelId
+    });
+    
+    if (response.data.items && response.data.items.length > 0) {
+      return response.data.items[0];
+    }
+    throw new Error('Channel not found');
+  } catch (error) {
+    console.error('Error fetching channel info:', error);
+    throw new Error(`Error fetching channel info: ${error.message}`);
+  }
+}
+
+// Get channel info by username
+async function getChannelByUsername(username, apiKey) {
+  try {
+    const youtube = google.youtube({
+      version: 'v3',
+      auth: apiKey
+    });
+    
+    // First try searching for the channel
+    const searchResponse = await youtube.search.list({
+      part: 'snippet',
+      q: username,
+      type: 'channel',
+      maxResults: 1
+    });
+    
+    if (searchResponse.data.items && searchResponse.data.items.length > 0) {
+      const channelId = searchResponse.data.items[0].snippet.channelId;
+      return getChannelById(channelId, apiKey);
+    }
+    
+    throw new Error('Channel not found for this username');
+  } catch (error) {
+    console.error('Error fetching channel by username:', error);
+    throw new Error(`Error fetching channel: ${error.message}`);
+  }
+}
+
+// Get channel's videos
+async function getChannelVideos(channelId, apiKey, maxResults = 10, onlyShorts = false) {
+  try {
+    const youtube = google.youtube({
+      version: 'v3',
+      auth: apiKey
+    });
+    
+    // Get channel's uploads playlist ID
+    const channelResponse = await youtube.channels.list({
+      part: 'contentDetails',
+      id: channelId
+    });
+    
+    if (!channelResponse.data.items || channelResponse.data.items.length === 0) {
+      throw new Error('Channel not found');
+    }
+    
+    const uploadsPlaylistId = channelResponse.data.items[0].contentDetails.relatedPlaylists.uploads;
+    
+    // Get videos from uploads playlist
+    const playlistResponse = await youtube.playlistItems.list({
+      part: 'snippet,contentDetails',
+      playlistId: uploadsPlaylistId,
+      maxResults: 50 // Max allowed by API
+    });
+    
+    if (!playlistResponse.data.items || playlistResponse.data.items.length === 0) {
+      return [];
+    }
+    
+    // Extract video IDs
+    const videoIds = playlistResponse.data.items.map(item => item.contentDetails.videoId);
+    
+    // Get detailed video info
+    const videosResponse = await youtube.videos.list({
+      part: 'snippet,contentDetails,statistics',
+      id: videoIds.join(',')
+    });
+    
+    let videos = videosResponse.data.items || [];
+    
+    // Filter Shorts if needed
+    if (onlyShorts) {
+      videos = videos.filter(video => {
+        // Shorts characteristics: vertical video (9:16 ratio), ≤60s
+        const duration = video.contentDetails.duration;
+        // Parse ISO 8601 duration format (PT1M30S etc.)
+        const match = duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/);
+        const hours = parseInt(match[1] || 0);
+        const minutes = parseInt(match[2] || 0);
+        const seconds = parseInt(match[3] || 0);
+        const totalSeconds = hours * 3600 + minutes * 60 + seconds;
+        
+        // ≤60s, or has #shorts tag
+        return (totalSeconds <= 60) || 
+               (video.snippet.tags && video.snippet.tags.includes('shorts')) || 
+               video.snippet.description.toLowerCase().includes('#shorts');
+      });
+    }
+    
+    // Return max results
+    return videos.slice(0, maxResults);
+  } catch (error) {
+    console.error('Error fetching videos:', error);
+    throw new Error(`Error fetching videos: ${error.message}`);
+  }
+}
+
+// Analyze individual Shorts video
+async function analyzeShortsVideo(videoId, apiKey) {
+  try {
+    const youtube = google.youtube({
+      version: 'v3',
+      auth: apiKey
+    });
+    
+    // 1. Get basic video info
+    const videoResponse = await youtube.videos.list({
+      part: 'snippet,contentDetails,statistics',
+      id: videoId
+    });
+    
+    if (!videoResponse.data.items || videoResponse.data.items.length === 0) {
+      throw new Error('Video not found');
+    }
+    
+    const videoData = videoResponse.data.items[0];
+    
+    // 2. Scrape additional info (hashtags, etc.)
+    const videoUrl = `https://www.youtube.com/shorts/${videoId}`;
+    const scrapeResponse = await axios.get(videoUrl);
+    const $ = cheerio.load(scrapeResponse.data);
+    
+    // Extract hashtags
+    let hashtags = [];
+    const description = videoData.snippet.description;
+    
+    // Extract hashtags from description
+    const hashtagRegex = /#[\w\u0080-\uFFFF]+/g;
+    const matches = description.match(hashtagRegex);
+    if (matches) {
+      hashtags = [...new Set(matches)]; // Remove duplicates
+    }
+    
+    // Extract hashtags from title
+    const titleMatches = videoData.snippet.title.match(hashtagRegex);
+    if (titleMatches) {
+      hashtags = [...new Set([...hashtags, ...titleMatches])]; // Merge and remove duplicates
+    }
+    
+    // Try to get captions availability
+    let captionsAvailable = false;
+    try {
+      const captionResponse = await youtube.captions.list({
+        part: 'snippet',
+        videoId: videoId
+      });
+      captionsAvailable = captionResponse.data.items && captionResponse.data.items.length > 0;
+    } catch (e) {
+      // Captions API might require additional permissions
+      console.log('Could not check captions:', e.message);
+    }
+    
+    return {
+      id: videoId,
+      title: videoData.snippet.title,
+      description: videoData.snippet.description,
+      publishedAt: videoData.snippet.publishedAt,
+      channelId: videoData.snippet.channelId,
+      channelTitle: videoData.snippet.channelTitle,
+      viewCount: videoData.statistics.viewCount,
+      likeCount: videoData.statistics.likeCount,
+      commentCount: videoData.statistics.commentCount,
+      duration: videoData.contentDetails.duration,
+      thumbnails: videoData.snippet.thumbnails,
+      hashtags: hashtags,
+      captionsAvailable: captionsAvailable,
+      transcriptNote: "YouTube API restrictions prevent direct transcript access. Use YouTube Studio or captions.list API with proper authorization for full transcript access."
+    };
+  } catch (error) {
+    console.error('Error analyzing Shorts video:', error);
+    throw new Error(`Error analyzing Shorts video: ${error.message}`);
+  }
+}
+
+// API endpoint for analysis
+app.post('/api/analyze', async (req, res) => {
+  try {
+    const { url, apiKey } = req.body;
+    
+    if (!url) {
+      return res.status(400).json({ error: 'URL is required' });
+    }
+    
+    if (!apiKey) {
+      return res.status(400).json({ error: 'YouTube API key is required' });
+    }
+    
+    // Parse YouTube URL
+    const parsedUrl = parseYouTubeUrl(url);
+    
+    // Process based on URL type
+    if (parsedUrl.type === 'channel' || parsedUrl.type === 'username' || parsedUrl.type === 'custom') {
+      let channelData;
+      
+      // Get channel info by ID or username
+      if (parsedUrl.type === 'channel') {
+        channelData = await getChannelById(parsedUrl.id, apiKey);
+      } else {
+        channelData = await getChannelByUsername(parsedUrl.id, apiKey);
+      }
+      
+      // Get channel's videos or Shorts
+      const videos = await getChannelVideos(
+        channelData.id, 
+        apiKey,
+        10, 
+        parsedUrl.isShorts // Filter for Shorts if needed
+      );
+      
+      // Create channel analysis result
+      const result = {
+        type: parsedUrl.isShorts ? 'channel_shorts' : 'channel',
+        channelInfo: {
+          id: channelData.id,
+          title: channelData.snippet.title,
+          description: channelData.snippet.description,
+          customUrl: channelData.snippet.customUrl,
+          publishedAt: channelData.snippet.publishedAt,
+          thumbnails: channelData.snippet.thumbnails,
+          statistics: channelData.statistics
+        },
+        videos: videos.map(video => ({
+          id: video.id,
+          title: video.snippet.title,
+          publishedAt: video.snippet.publishedAt,
+          viewCount: video.statistics.viewCount,
+          likeCount: video.statistics.likeCount,
+          commentCount: video.statistics.commentCount,
+          duration: video.contentDetails.duration,
+          thumbnails: video.snippet.thumbnails,
+          isShort: video.contentDetails.duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/) && 
+                  (parseInt(RegExp.$1 || 0) * 3600 + parseInt(RegExp.$2 || 0) * 60 + parseInt(RegExp.$3 || 0)) <= 60
+        }))
+      };
+      
+      // Add Shorts stats if analyzing Shorts section
+      if (parsedUrl.isShorts) {
+        const shortsCount = videos.length;
+        const totalViews = videos.reduce((sum, video) => sum + parseInt(video.statistics.viewCount || 0), 0);
+        const avgViews = shortsCount > 0 ? Math.round(totalViews / shortsCount) : 0;
+        
+        // Calculate upload frequency
+        if (shortsCount >= 2) {
+          const dates = videos.map(v => new Date(v.snippet.publishedAt));
+          const sortedDates = dates.sort((a, b) => b - a); // Sort descending
+          
+          let totalDays = 0;
+          for (let i = 0; i < sortedDates.length - 1; i++) {
+            const diffTime = sortedDates[i] - sortedDates[i + 1];
+            const diffDays = diffTime / (1000 * 60 * 60 * 24);
+            totalDays += diffDays;
+          }
+          
+          const avgUploadFrequency = totalDays / (sortedDates.length - 1);
+          result.shortsStats = {
+            count: shortsCount,
+            totalViews,
+            avgViews,
+            uploadFrequency: avgUploadFrequency.toFixed(1) // 1 decimal place
+          };
+        } else {
+          result.shortsStats = {
+            count: shortsCount,
+            totalViews,
+            avgViews,
+            uploadFrequency: "Insufficient data"
+          };
+        }
+      }
+      
+      return res.json(result);
+    } 
+    // Analyze individual Shorts video
+    else if (parsedUrl.type === 'shorts') {
+      const shortsAnalysis = await analyzeShortsVideo(parsedUrl.id, apiKey);
+      return res.json({
+        type: 'shorts_video',
+        data: shortsAnalysis
+      });
+    }
+    // Analyze regular video
+    else if (parsedUrl.type === 'video') {
+      const youtube = google.youtube({
+        version: 'v3',
+        auth: apiKey
+      });
+      
+      const videoResponse = await youtube.videos.list({
+        part: 'snippet,contentDetails,statistics',
+        id: parsedUrl.id
+      });
+      
+      if (!videoResponse.data.items || videoResponse.data.items.length === 0) {
+        return res.status(404).json({ error: 'Video not found' });
+      }
+      
+      const videoData = videoResponse.data.items[0];
+      
+      // Extract hashtags
+      let hashtags = [];
+      const description = videoData.snippet.description;
+      
+      const hashtagRegex = /#[\w\u0080-\uFFFF]+/g;
+      const matches = description.match(hashtagRegex);
+      if (matches) {
+        hashtags = [...new Set(matches)];
+      }
+      
+      return res.json({
+        type: 'video',
+        data: {
+          id: videoData.id,
+          title: videoData.snippet.title,
+          description: videoData.snippet.description,
+          publishedAt: videoData.snippet.publishedAt,
+          channelId: videoData.snippet.channelId,
+          channelTitle: videoData.snippet.channelTitle,
+          viewCount: videoData.statistics.viewCount,
+          likeCount: videoData.statistics.likeCount,
+          commentCount: videoData.statistics.commentCount,
+          duration: videoData.contentDetails.duration,
+          thumbnails: videoData.snippet.thumbnails,
+          hashtags: hashtags
+        }
+      });
+    } 
+    else {
+      return res.status(400).json({ error: 'Unsupported URL format' });
+    }
+  } catch (error) {
+    console.error('Analysis error:', error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Validate API key endpoint
+app.post('/api/validate-key', async (req, res) => {
+  try {
+    const { apiKey } = req.body;
+    
+    if (!apiKey) {
+      return res.status(400).json({ error: 'API key is required' });
+    }
+    
+    // Simple validation by making a basic API request
+    const youtube = google.youtube({
+      version: 'v3',
+      auth: apiKey
+    });
+    
+    await youtube.channels.list({
+      part: 'snippet',
+      id: 'UC_x5XG1OV2P6uZZ5FSM9Ttw' // Google's official channel ID
+    });
+    
+    // If no error, key is valid
+    return res.json({ valid: true });
+  } catch (error) {
+    console.error('API key validation error:', error);
+    
+    if (error.response && error.response.status === 403) {
+      return res.json({ valid: false, error: 'Invalid API key' });
+    }
+    
+    return res.json({ valid: false, error: error.message });
+  }
+});
+
+// Start server
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
+});

@@ -1,0 +1,239 @@
+MockTube Scanner - Complete Development Specification
+1. Project Overview
+Project Name: MockTube Scanner
+Tagline: "Uncover any YouTube channel's strategy in one click"
+1.1 Purpose
+Develop a web-based tool that allows users to easily analyze the strategy of any YouTube channel or Shorts content. This tool will be valuable for content creators, marketers, and content strategists for competitor analysis and benchmarking purposes.
+2. Feature Requirements
+2.1 Core Features
+
+Support for Various URL Formats
+
+Channel URLs: https://www.youtube.com/@channelname, https://www.youtube.com/channel/UCxxxx
+Shorts section: https://www.youtube.com/@channelname/shorts, https://www.youtube.com/channel/UCxxxx/shorts
+Individual Shorts: https://www.youtube.com/shorts/videoId
+Regular videos: https://www.youtube.com/watch?v=videoId, https://youtu.be/videoId
+
+
+Channel Analysis
+
+Channel metadata: name, description, subscriber count, total videos, total views, creation date
+Recent videos analysis (top 10): title, views, likes, comments, publish date, thumbnail
+Upload frequency calculation
+Content style patterns
+
+
+Shorts-Specific Analysis
+
+Filter and analyze only Shorts from a channel
+Calculate Shorts-specific metrics: average views, engagement rate, upload frequency
+Identify top-performing Shorts
+
+
+Individual Shorts Analysis
+
+Extract metadata: title, views, likes, comments, publish date
+Extract hashtags from description and title
+Attempt to extract or note availability of transcript/captions
+Provide channel context (from which the Short originates)
+
+
+User-Provided API Key System
+
+Allow users to input their own YouTube Data API key in settings
+Store API key in browser's local storage for returning users
+Provide clear instructions on how to obtain an API key
+
+
+
+2.2 UI Components
+
+Analysis Type Tabs
+
+General analysis tab
+Shorts-focused analysis tab
+Individual video analysis tab
+
+
+URL Input Section
+
+URL input field with validation
+Clear examples and guidelines
+Analysis trigger button
+Loading indicator
+
+
+Results Display
+
+Channel overview card
+Visual metrics (charts/graphs where appropriate)
+Video/Shorts listing with thumbnails
+Sorting and filtering options
+
+
+Settings Panel
+
+API key management
+Display preferences
+Optional: theme selection
+
+
+
+3. Technical Implementation
+3.1 Technology Stack
+
+Frontend: HTML5, CSS (Tailwind), JavaScript (or React if preferred)
+Backend: Node.js with Express
+APIs: YouTube Data API v3
+Additional Libraries:
+
+Axios for HTTP requests
+Cheerio for any necessary web scraping
+Chart.js for data visualization
+
+
+
+3.2 API Integration
+YouTube Data API v3 Setup
+
+API Key Configuration
+
+Implement a settings modal for API key input
+Store API key securely in local storage
+Validate API key before saving
+
+
+API Endpoints to Use:
+
+channels.list: Get channel details
+search.list: Search for channels or videos
+videos.list: Get detailed video information
+playlistItems.list: Get videos from a channel's uploads playlist
+
+
+API Usage Optimization
+
+Implement basic response caching
+Batch requests where possible
+Show remaining quota information
+
+
+
+3.3 URL Parsing and Processing
+
+URL Validation and Extraction Logic
+
+Parse various YouTube URL formats
+Extract channel IDs, video IDs, or usernames
+Determine analysis type based on URL pattern
+
+
+Error Handling
+
+Clear error messages for invalid URLs
+Suggestions for URL correction
+API quota exceeded handling
+
+
+
+3.4 Data Processing Features
+
+Channel Data Processing
+
+Calculate upload frequency (average days between uploads)
+Identify content patterns (title styles, thumbnail styles)
+Generate channel summary statistics
+
+
+Shorts Analysis
+
+Filter videos based on duration (≤60s) and aspect ratio
+Identify Shorts-specific tags and trends
+Compare Shorts performance vs. regular videos
+
+
+Hashtag Extraction
+
+Parse video descriptions and titles for hashtags
+Group and count hashtag usage
+Identify trending hashtags within a channel
+
+
+
+4. User Experience
+4.1 Analysis Flow
+
+User enters YouTube URL in the input field
+System validates URL format
+User clicks "Analyze" button
+Loading indicator appears
+System fetches and processes data
+Results are displayed in organized sections
+User can toggle between different views or export results
+
+4.2 API Key Setup Instructions
+Include a detailed guide within the app on how to obtain a YouTube Data API key:
+
+Go to Google Cloud Console
+Create a new project
+Enable YouTube Data API v3
+Create credentials (API Key)
+Set appropriate restrictions
+Copy and paste the API key into the app settings
+
+4.3 Error States
+
+Invalid URL format
+Channel not found
+API key invalid or missing
+API quota exceeded
+Network connectivity issues
+
+5. Implementation Phases
+5.1 Phase 1: Core Functionality
+
+Basic URL input and validation
+Channel analysis for standard URLs
+Simple results display
+API key configuration
+
+5.2 Phase 2: Enhanced Features
+
+Support for Shorts section analysis
+Individual Shorts analysis
+Improved data visualization
+Local storage for recent analyses
+
+5.3 Phase 3: Advanced Features
+
+Content style analysis
+Trend identification
+Export functionality
+Responsive design improvements
+
+6. Example Data Output
+📊 Channel Analysis: @wisdom_life365
+👤 Subscribers: 123,456
+👁️ Total Views: 9,876,543
+📅 Channel Created: January 1, 2020
+📺 Videos: 150
+📱 Shorts: 45
+
+📊 Shorts Analysis:
+👁️ Average Views: 12,345
+⏱️ Average Duration: 32 seconds
+🔄 Upload Frequency: 1 Short every 3.5 days
+📈 Popular Hashtags: #motivation #success #daily
+
+🔍 Top Shorts:
+1. "3 Habits for Success" - 100,000 views - Oct 15, 2023
+2. "Morning Routine Must-Dos" - 95,000 views - Sep 20, 2023
+...
+7. Additional Notes
+
+The app should handle API quota limitations gracefully
+Consider implementing a simplified mode that works without an API key (but with limited functionality)
+Ensure responsive design for mobile users
+Include helpful tooltips explaining metrics and features
+
+By implementing this specification, MockTube Scanner will provide a comprehensive tool for YouTube channel and Shorts content analysis, helping content creators better understand successful strategies in their niche.

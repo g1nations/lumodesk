@@ -1,0 +1,96 @@
+// public/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MockTube Scanner - Uncover any YouTube channel's strategy in one click</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .tab-active {
+      border-bottom: 2px solid #ff0000;
+      color: #ff0000;
+      font-weight: bold;
+    }
+    
+    /* Loading Spinner */
+    .spinner {
+      border: 4px solid rgba(0, 0, 0, 0.1);
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border-left-color: #ff0000;
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body class="bg-gray-100">
+  <div class="container mx-auto px-4 py-8 max-w-6xl">
+    <header class="text-center mb-8">
+      <h1 class="text-3xl font-bold text-gray-800 mb-2 flex items-center justify-center">
+        <i class="fa-brands fa-youtube text-red-600 mr-2"></i> MockTube Scanner
+        <span class="text-sm bg-red-600 text-white px-2 py-1 rounded-md ml-2">Beta</span>
+      </h1>
+      <p class="text-gray-600">Uncover any YouTube channel's strategy in one click</p>
+    </header>
+    
+    <!-- Analysis Type Tabs -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div class="flex border-b border-gray-200 mb-6 overflow-x-auto">
+        <button id="tab-all" class="px-4 py-2 mr-2 text-gray-600 tab-active whitespace-nowrap">General Analysis</button>
+        <button id="tab-shorts" class="px-4 py-2 mr-2 text-gray-600 whitespace-nowrap">Shorts Analysis</button>
+        <button id="tab-video" class="px-4 py-2 text-gray-600 whitespace-nowrap">Individual Video Analysis</button>
+      </div>
+
+      <div class="mb-6">
+        <label for="youtube-url" class="block text-gray-700 mb-2 font-medium">Enter YouTube URL</label>
+        <div class="flex items-start flex-col md:flex-row">
+          <div class="flex-grow w-full md:w-auto md:mr-4 mb-2 md:mb-0">
+            <input 
+              type="text" 
+              id="youtube-url" 
+              placeholder="e.g., https://www.youtube.com/@channelname or https://www.youtube.com/shorts/videoId" 
+              class="w-full border border-gray-300 rounded-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+            <div id="url-hint" class="text-xs text-gray-600 mt-1">
+              Enter a channel URL, Shorts section, or individual Shorts video URL
+            </div>
+          </div>
+          <button 
+            id="analyze-btn" 
+            class="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-6 rounded-md flex items-center"
+          >
+            <span>Analyze</span>
+            <i class="fas fa-search ml-2"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- API Key Management -->
+      <div class="mt-4 border-t pt-4">
+        <details class="text-sm">
+          <summary class="font-medium text-gray-700 cursor-pointer hover:text-red-600">
+            <i class="fas fa-key mr-1"></i> YouTube API Key Settings
+          </summary>
+          <div class="mt-3 bg-gray-50 p-4 rounded-md">
+            <div class="mb-3">
+              <label for="api-key" class="block text-gray-700 mb-2 text-sm font-medium">Your YouTube Data API Key</label>
+              <div class="flex">
+                <input 
+                  type="password" 
+                  id="api-key" 
+                  placeholder="Enter your YouTube Data API key" 
+                  class="flex-grow border border-gray-300 rounded-l-md py-2 px-3 focus:outline-none focus:ring-2 focus:ring-red-500"
+                >
+                <button 
+                  id="
