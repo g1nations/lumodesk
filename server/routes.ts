@@ -277,13 +277,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/captions/:videoId', async (req, res) => {
     try {
       const { videoId } = req.params;
-      const lang = req.query.lang || 'en';
+      const langParam = req.query.lang || 'en';
+      const language = langParam as string;
       
       if (!videoId) {
         return res.status(400).json({ error: 'Video ID is required' });
       }
       
-      const captionsData = await getCaptions(videoId, lang as string);
+      const captionsData = await getCaptions(videoId, language);
       
       // 일관된 응답 형식 제공
       if (Array.isArray(captionsData)) {
@@ -291,8 +292,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ 
           captions: captionsData,
           metadata: {
-            language: lang as string,
-            videoId
+            language: language,
+            videoId: videoId
           }
         });
       } else {
@@ -305,7 +306,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json({ 
         captions: [],
         metadata: {
-          language: lang as string,
+          language: language,
           videoId: videoId,
           error: error.message || 'Failed to fetch captions'
         }
@@ -317,7 +318,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/captions/:videoId/download', async (req, res) => {
     try {
       const { videoId } = req.params;
-      const lang = req.query.lang || 'en';
+      const langParam = req.query.lang || 'en';
+      const language = langParam as string;
       const format = req.query.format || 'srt'; // srt, txt, json
       
       if (!videoId) {
@@ -325,7 +327,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // 캡션 데이터 가져오기
-      const captionDataResult = await getCaptions(videoId, lang as string);
+      const captionDataResult = await getCaptions(videoId, language);
       
       // 캡션 데이터 형식 정규화
       let captions: any[] = [];
@@ -344,8 +346,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.json({
             captions: [],
             metadata: {
-              videoId,
-              language: lang,
+              videoId: videoId,
+              language: language,
               message: "No captions available for this video"
             }
           });
@@ -368,7 +370,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         res.setHeader('Content-Type', 'text/plain');
-        res.setHeader('Content-Disposition', `attachment; filename=${videoId}_${lang}.srt`);
+        res.setHeader('Content-Disposition', `attachment; filename=${videoId}_${language}.srt`);
         return res.send(srtContent);
       }
       
@@ -380,7 +382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
         
         res.setHeader('Content-Type', 'text/plain');
-        res.setHeader('Content-Disposition', `attachment; filename=${videoId}_${lang}.txt`);
+        res.setHeader('Content-Disposition', `attachment; filename=${videoId}_${language}.txt`);
         return res.send(textContent);
       }
       
@@ -388,14 +390,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const formattedData = {
         captions,
         metadata: {
-          videoId,
-          language: lang,
+          videoId: videoId,
+          language: language,
           count: captions.length
         }
       };
       
       res.setHeader('Content-Type', 'application/json');
-      res.setHeader('Content-Disposition', `attachment; filename=${videoId}_${lang}.json`);
+      res.setHeader('Content-Disposition', `attachment; filename=${videoId}_${language}.json`);
       res.json(formattedData);
     } catch (error: any) {
       console.error('Error downloading captions:', error);
@@ -405,8 +407,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.json({ 
           captions: [],
           metadata: {
-            videoId,
-            language: lang as string,
+            videoId: videoId,
+            language: language,
             error: error.message || 'Failed to download captions'
           }
         });
