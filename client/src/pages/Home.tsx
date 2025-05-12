@@ -150,10 +150,13 @@ export default function Home() {
       case 'channel':
         return <ChannelAnalysis data={analysisData} />;
       case 'channel_shorts':
+        // 원본 데이터에 hideSEOAnalysis 속성 추가
+        const modifiedData = {...analysisData, hideSEOAnalysis: true};
+        
         return (
           <>
-            <ChannelAnalysis data={{...analysisData, hideSEOAnalysis: true}} />
-            <ShortsAnalysis data={analysisData} />
+            <ChannelAnalysis data={modifiedData} />
+            <ShortsAnalysis data={modifiedData} />
           </>
         );
       case 'shorts':
