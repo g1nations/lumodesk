@@ -9,7 +9,7 @@ import {
   analyzeShortsVideo,
   getCaptions
 } from "./youtube";
-import { analyzeSEO, generateParody } from "./ai";
+import { analyzeSEO, generateParody, analyzeCaptionOptimization } from "./ai";
 import { InsertAnalysisHistory } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -422,7 +422,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI를 활용한 SEO 분석 API 엔드포인트
   app.post('/api/analyze-seo', async (req, res) => {
     try {
-      const { title, description, tags, apiKey, model } = req.body;
+      const { title, description, tags, apiKey, model, language } = req.body;
       
       if (!apiKey) {
         return res.status(400).json({ error: 'OpenRouter API key is required' });
@@ -437,7 +437,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description || '', 
         tags || [], 
         apiKey,
-        model
+        model,
+        language || 'en'
       );
       
       return res.json({ seoAnalysis });
@@ -450,7 +451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // AI를 활용한 패러디 생성 API 엔드포인트
   app.post('/api/generate-parody', async (req, res) => {
     try {
-      const { caption, apiKey, model } = req.body;
+      const { caption, apiKey, model, language } = req.body;
       
       if (!apiKey) {
         return res.status(400).json({ error: 'OpenRouter API key is required' });
@@ -460,12 +461,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Caption text is required' });
       }
       
-      const parody = await generateParody(caption, apiKey, model);
+      const parody = await generateParody(caption, apiKey, model, language || 'en');
       
       return res.json({ parody });
     } catch (error: any) {
       console.error('Error generating parody:', error);
       return res.status(500).json({ error: error.message || 'Error generating parody' });
+    }
+  });
+
+  // AI를 활용한 캡션 최적화 분석 API 엔드포인트
+  app.post('/api/analyze-caption', async (req, res) => {
+    try {
+      const { caption, apiKey, model, language } = req.body;
+      
+      if (!apiKey) {
+        return res.status(400).json({ error: 'OpenRouter API key is required' });
+      }
+      
+      if (!caption) {
+        return res.status(400).json({ error: 'Caption text is required' });
+      }
+      
+      const captionAnalysis = await analyzeCaptionOptimization(
+        caption,
+        apiKey,
+        model,
+        language || 'en'
+      );
+      
+      return res.json({ captionAnalysis });
+    } catch (error: any) {
+      console.error('Error analyzing caption:', error);
+      return res.status(500).json({ error: error.message || 'Error analyzing caption' });
     }
   });
 
