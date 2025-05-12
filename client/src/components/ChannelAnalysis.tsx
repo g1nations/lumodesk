@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   formatNumber,
@@ -6,6 +7,11 @@ import {
   calculateEngagementRate
 } from '@/lib/youtube';
 import { Chart } from '@/components/ui/chart';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { CalendarIcon } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface ChannelAnalysisProps {
   data: any;
@@ -20,10 +26,38 @@ export default function ChannelAnalysis({ data }: ChannelAnalysisProps) {
   const totalViews = parseInt(channelInfo.statistics.viewCount || '0');
   const totalSubs = parseInt(channelInfo.statistics.subscriberCount || '0');
   
+  // 날짜 필터링을 위한 상태
+  const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
+  const [toDate, setToDate] = useState<Date | undefined>(undefined);
+  
+  // 날짜 선택 상태에 따라 비디오 필터링
+  const filteredVideos = videos.filter((v: any) => {
+    if (!fromDate && !toDate) return true;
+    
+    const videoDate = new Date(v.publishedAt);
+    
+    if (fromDate && toDate) {
+      return videoDate >= fromDate && videoDate <= toDate;
+    } else if (fromDate) {
+      return videoDate >= fromDate;
+    } else if (toDate) {
+      return videoDate <= toDate;
+    }
+    
+    return true;
+  });
+  
   // Calculate total shorts vs regular videos
   const shortCount = videos.filter((v: any) => 
     v.isShort || v.duration <= 60
   ).length;
+  
+  // 필터링된 비디오에서 쇼츠와 일반 영상 개수 계산
+  const filteredShortCount = filteredVideos.filter((v: any) => 
+    v.isShort || v.duration <= 60
+  ).length;
+  
+  const filteredRegularCount = filteredVideos.length - filteredShortCount;
   
   const regularCount = totalVideos - shortCount;
   
