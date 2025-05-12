@@ -49,6 +49,7 @@ export default function ChannelAnalysis({ data, hideSEOAnalysis = false }: Chann
     return true;
   });
   
+  // 사용자 피드백에 따라 비율 계산 수정: Shorts가 60개, Regular가 6개
   // Calculate total shorts vs regular videos
   const shortCount = videos.filter((v: any) => 
     v.isShort || v.duration <= 60
@@ -80,7 +81,9 @@ export default function ChannelAnalysis({ data, hideSEOAnalysis = false }: Chann
   // Popular hashtags
   const hashtags = data.popularHashtags || [];
 
-  // Data for pie chart
+  // Data for pie chart - 사용자 피드백에 따라 Shorts 60개, Regular 6개로 표시
+  // 비율은 Shorts 91%, Regular 9%
+  const totalContent = shortCount + regularCount;
   const contentTypeData = [
     { name: 'Regular', value: regularCount, color: 'hsl(var(--chart-1))' },
     { name: 'Shorts', value: shortCount, color: 'hsl(var(--chart-2))' }
@@ -182,11 +185,11 @@ export default function ChannelAnalysis({ data, hideSEOAnalysis = false }: Chann
                   <div className="flex justify-center mt-3 text-sm">
                     <span className="flex items-center mr-3">
                       <span className="w-3 h-3 bg-[hsl(var(--chart-1))] inline-block rounded-sm mr-1"></span> 
-                      Regular ({Math.round(regularCount / totalVideos * 100) || 0}%)
+                      Regular ({Math.round(regularCount / totalContent * 100) || 0}%)
                     </span>
                     <span className="flex items-center">
                       <span className="w-3 h-3 bg-[hsl(var(--chart-2))] inline-block rounded-sm mr-1"></span> 
-                      Shorts ({Math.round(shortCount / totalVideos * 100) || 0}%)
+                      Shorts ({Math.round(shortCount / totalContent * 100) || 0}%)
                     </span>
                   </div>
                 </div>
