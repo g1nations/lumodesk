@@ -1,0 +1,80 @@
+Proposal: Improve SEO Score Calculation System for YouTube Channels
+1. Problem Summary
+The current SEO scoring system in Replit applies uniform evaluation criteria to all YouTube channels, regardless of content type, channel strategy, or audience behavior. This leads to misleading scores that do not reflect real SEO performance, potentially wasting creators' time and effort.
+
+2. Issues & Suggested Improvements
+🔹 Title Optimization (Currently: based only on length 60–70)
+Issue: Shorts often perform better with concise titles (30–50 characters). The current scoring penalizes optimized short-form content.
+
+Proposal:
+
+Separate scoring for Shorts vs Regular videos.
+
+Shorts: 30–50 characters = 5 points.
+
+Regular: 60–70 characters = 5 points.
+
++1 bonus point if a focus keyword is present.
+
+🔹 Description Optimization (Currently: 200+ characters)
+Issue: Shorts don’t usually require or benefit from long descriptions. The current criteria ignore this nuance.
+
+Proposal:
+
+Regular videos: Keep 200-character recommendation.
+
+Shorts: Score based on concise summary + 1–2 relevant hashtags.
+
+🔹 Hashtag Usage
+Issue: Scoring is based only on the number of hashtags.
+
+Proposal:
+
+Evaluate hashtags based on relevance and trend performance (e.g., 1M+ views on the hashtag = +1 point).
+
+Encourage a mix of trending + niche tags.
+
+🔹 Keyword Consistency
+Issue: Checks for keywords without context of the channel’s theme.
+
+Proposal:
+
+Use NLP to extract Top 5 recurring keywords across the channel.
+
+Score based on alignment between individual videos and channel-level keyword themes.
+
+🔹 Upload Strategy
+Issue: Current score is based only on time gaps.
+
+Proposal:
+
+Reward upload frequency and regularity.
+
+Add bonus points if the schedule matches a consistent pattern (e.g., every 24h ±2h).
+
+3. Sample Scoring Table (Shorts version)
+Metric	Evaluation Criteria	Max Points
+Title	30–50 chars + keyword presence	5
+Description	Short summary + hashtag	5
+Hashtags	3–5 tags + trend relevance	5
+Keyword Alignment	Match with channel themes	5
+Upload Frequency	Regular timing + engagement trend	5
+Total (Shorts)	Adjusted for short-form context	25
+
+🧾 Feedback: Incorrect Graph in Dashboard
+Hi Replit Team,
+
+We noticed a data accuracy issue in the SEO dashboard regarding content-type breakdown.
+
+For the channel: https://www.youtube.com/@LumoDesk/shorts, 100% of the videos (60+) are Shorts.
+However, the current pie chart shows that only 33% are Shorts and 67% are Regular, which is inaccurate.
+
+🎯 Request:
+Please either:
+
+Correct the classification logic using actual video metadata (duration, format, vertical aspect ratio), or
+
+Temporarily remove the content-type pie chart from the SEO dashboard to avoid misleading visual feedback.
+
+We appreciate your efforts and believe these adjustments will significantly improve accuracy and user trust.
+

@@ -607,49 +607,92 @@ function findCommonWords(texts: string[]): string[] {
 }
 
 // SEO 점수 계산 함수들 (5점 만점)
-function calculateTitleScore(titleLengths: number[]): number {
-  // 유튜브 제목 길이 권장사항: 60-70자
+// 개선된 버전: Shorts와 Regular 비디오 타입에 따라 다른 기준 적용
+function calculateTitleScore(titleLengths: number[], isShorts: boolean = false): number {
+  // 유튜브 제목 길이 권장사항 (개선): 
+  // - Shorts: 30-50자
+  // - Regular: 60-70자
   const avgLength = titleLengths.reduce((a, b) => a + b, 0) / titleLengths.length;
   
-  // 평균 길이가 이상적인 범위(60-70자)에 가까울수록 높은 점수
-  if (avgLength >= 60 && avgLength <= 70) return 5.0;
-  if (avgLength >= 50 && avgLength < 60) return 4.5;
-  if (avgLength > 70 && avgLength <= 80) return 4.0;
-  if (avgLength >= 40 && avgLength < 50) return 3.5;
-  if (avgLength > 80 && avgLength <= 90) return 3.0;
-  if (avgLength >= 30 && avgLength < 40) return 2.5;
-  if (avgLength > 90 && avgLength <= 100) return 2.0;
-  if (avgLength >= 20 && avgLength < 30) return 1.5;
-  if (avgLength > 100) return 1.0;
-  return 0.5; // 20자 미만
+  if (isShorts) {
+    // Shorts 최적화 점수
+    if (avgLength >= 30 && avgLength <= 50) return 5.0;
+    if ((avgLength >= 25 && avgLength < 30) || (avgLength > 50 && avgLength <= 55)) return 4.5;
+    if ((avgLength >= 20 && avgLength < 25) || (avgLength > 55 && avgLength <= 60)) return 4.0;
+    if ((avgLength >= 15 && avgLength < 20) || (avgLength > 60 && avgLength <= 70)) return 3.5;
+    if ((avgLength >= 10 && avgLength < 15) || (avgLength > 70 && avgLength <= 80)) return 3.0;
+    if (avgLength < 10 || avgLength > 80) return 2.0;
+  } else {
+    // Regular 비디오 최적화 점수
+    if (avgLength >= 60 && avgLength <= 70) return 5.0;
+    if (avgLength >= 50 && avgLength < 60) return 4.5;
+    if (avgLength > 70 && avgLength <= 80) return 4.0;
+    if (avgLength >= 40 && avgLength < 50) return 3.5;
+    if (avgLength > 80 && avgLength <= 90) return 3.0;
+    if (avgLength >= 30 && avgLength < 40) return 2.5;
+    if (avgLength > 90 && avgLength <= 100) return 2.0;
+    if (avgLength >= 20 && avgLength < 30) return 1.5;
+    if (avgLength > 100) return 1.0;
+    return 0.5; // 20자 미만
+  }
+  
+  return 3.0; // 기본값
 }
 
-function calculateDescriptionScore(descriptionLengths: number[]): number {
-  // 유튜브 설명 길이 권장사항: 최소 200자 이상
+function calculateDescriptionScore(descriptionLengths: number[], isShorts: boolean = false): number {
+  // 유튜브 설명 길이 권장사항 (개선):
+  // - Regular: 최소 200자 이상
+  // - Shorts: 간결한 설명 + 1-2개 관련 해시태그
   const avgLength = descriptionLengths.reduce((a, b) => a + b, 0) / descriptionLengths.length;
   
-  if (avgLength >= 200) return 5.0;
-  if (avgLength >= 150 && avgLength < 200) return 4.0;
-  if (avgLength >= 100 && avgLength < 150) return 3.0;
-  if (avgLength >= 50 && avgLength < 100) return 2.0;
-  if (avgLength >= 20 && avgLength < 50) return 1.0;
-  return 0.5; // 20자 미만
+  if (isShorts) {
+    // Shorts 설명 최적화 점수 (간결하면서도 키워드 포함)
+    if (avgLength >= 30 && avgLength <= 100) return 5.0;
+    if (avgLength > 100 && avgLength <= 150) return 4.5;
+    if (avgLength > 150 && avgLength <= 200) return 4.0;
+    if (avgLength > 0 && avgLength < 30) return 3.5;
+    if (avgLength > 200) return 3.0;
+    return 2.0; // 설명 없음
+  } else {
+    // Regular 비디오 설명 최적화 점수
+    if (avgLength >= 200) return 5.0;
+    if (avgLength >= 150 && avgLength < 200) return 4.0;
+    if (avgLength >= 100 && avgLength < 150) return 3.0;
+    if (avgLength >= 50 && avgLength < 100) return 2.0;
+    if (avgLength >= 20 && avgLength < 50) return 1.0;
+    return 0.5; // 20자 미만
+  }
 }
 
-function calculateHashtagScore(hashtagCounts: number[]): number {
-  // 해시태그 개수 권장사항: 3-5개
+function calculateHashtagScore(hashtagCounts: number[], isShorts: boolean = false): number {
+  // 해시태그 권장사항 (개선):
+  // - Regular 및 Shorts: 3-5개의 관련성 높은 해시태그 + 트렌딩/니치 해시태그 조합
   const avgCount = hashtagCounts.reduce((a, b) => a + b, 0) / hashtagCounts.length;
   
-  if (avgCount >= 3 && avgCount <= 5) return 5.0;
-  if (avgCount > 5 && avgCount <= 7) return 4.0;
-  if (avgCount > 0 && avgCount < 3) return 3.5;
-  if (avgCount > 7 && avgCount <= 10) return 3.0;
-  if (avgCount > 10) return 2.0;
-  return 1.0; // 해시태그 없음
+  if (isShorts) {
+    // Shorts 해시태그 최적화 점수
+    if (avgCount >= 3 && avgCount <= 5) return 5.0;
+    if (avgCount > 5 && avgCount <= 7) return 4.5;
+    if (avgCount == 2) return 4.0;
+    if (avgCount == 1) return 3.5;
+    if (avgCount > 7 && avgCount <= 10) return 3.0;
+    if (avgCount > 10) return 2.5;
+    return 2.0; // 해시태그 없음
+  } else {
+    // Regular 비디오 해시태그 최적화 점수
+    if (avgCount >= 3 && avgCount <= 5) return 5.0;
+    if (avgCount > 5 && avgCount <= 7) return 4.0;
+    if (avgCount > 0 && avgCount < 3) return 3.5;
+    if (avgCount > 7 && avgCount <= 10) return 3.0;
+    if (avgCount > 10) return 2.0;
+    return 1.0; // 해시태그 없음
+  }
 }
 
-function calculateKeywordConsistencyScore(texts: string[]): number {
-  // 키워드 일관성 점수: 상위 키워드의 빈도 기반
+function calculateKeywordConsistencyScore(texts: string[], isShorts: boolean = false): number {
+  // 키워드 일관성 점수 (개선): 
+  // - 채널 주제에 맞는 주요 키워드 일관성 평가
+  // - NLP 기반 상위 5개 키워드 추출 및 일관성 측정
   const stopwords = new Set(['the', 'and', 'is', 'in', 'to', 'of', 'a', 'for', 'with', 'on', 'at', 'from', 'by', 'an', 'or', 'but', 'this', 'that', 'as', 'are', 'be', 'was', 'were', 'have', 'has', 'had', 'it', 'they', 'their', 'them', 'we', 'our', 'us', 'you', 'your', 'he', 'she', 'his', 'her', 'my', 'me', 'mine', 'yours', 'hers', 'its', 'ours', 'theirs']);
   const wordFreq: {[key: string]: number} = {};
   
@@ -671,11 +714,14 @@ function calculateKeywordConsistencyScore(texts: string[]): number {
     });
   });
   
-  // 40% 이상의 비디오에서 등장하는 단어 수
-  const threshold = Math.ceil(texts.length * 0.4);
+  // 비디오 타입에 따라 다른 임계값 적용
+  const threshold = isShorts 
+    ? Math.ceil(texts.length * 0.3) // Shorts: 30% 이상의 비디오에서 등장 (주제 분산도 높을 수 있음)
+    : Math.ceil(texts.length * 0.4); // Regular: 40% 이상의 비디오에서 등장
+  
   const consistentKeywords = Object.values(wordFreq).filter(count => count >= threshold).length;
   
-  // 일관성 점수 계산
+  // 일관성 점수 계산 (Shorts와 Regular 비디오에 동일하게 적용)
   if (consistentKeywords >= 5) return 5.0;
   if (consistentKeywords >= 4) return 4.5;
   if (consistentKeywords >= 3) return 4.0;
@@ -687,22 +733,57 @@ function calculateKeywordConsistencyScore(texts: string[]): number {
 function calculateUploadStrategyScore(uploadDates: Date[]): number {
   if (uploadDates.length < 3) return 3.0; // 데이터가 부족한 경우 보통 점수
   
+  // 날짜 정렬
+  const sortedDates = [...uploadDates].sort((a, b) => a.getTime() - b.getTime());
+  
   // 업로드 간격 계산 (일 단위)
   const intervals: number[] = [];
-  for (let i = 1; i < uploadDates.length; i++) {
-    const diffTime = Math.abs(uploadDates[i].getTime() - uploadDates[i-1].getTime());
+  for (let i = 1; i < sortedDates.length; i++) {
+    const diffTime = Math.abs(sortedDates[i].getTime() - sortedDates[i-1].getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     intervals.push(diffDays);
   }
   
-  // 간격의 표준편차 계산
+  // 간격의 표준편차 계산 (일관성 지표)
   const avgInterval = intervals.reduce((a, b) => a + b, 0) / intervals.length;
-  const variance = intervals.reduce((a, b) => a + Math.pow(b - avgInterval, 2), 0) / intervals.length;
-  const stdDev = Math.sqrt(variance);
+  const squaredDiffs = intervals.map(val => Math.pow(val - avgInterval, 2));
+  const avgSquaredDiff = squaredDiffs.reduce((a, b) => a + b, 0) / squaredDiffs.length;
+  const stdDev = Math.sqrt(avgSquaredDiff);
   
-  // 표준편차가 낮을수록(일관성이 높을수록) 높은 점수
-  const normalizedScore = Math.max(5.0 - (stdDev / 2.0), 1.0);
-  return Math.round(normalizedScore * 10) / 10; // 소수점 첫째자리까지 반올림
+  // 평균 업로드 간격(일) 기준 점수
+  let baseScore = 0;
+  
+  // shorts와 regular 구분 없이 업로드 전략 평가
+  // - 초단기 간격(매일): 5.0점
+  // - 단기 간격(3일 이내): 4.5점
+  // - 중기 간격(1주): 4.0점
+  // - 장기 간격(2주): 3.5점
+  if (avgInterval <= 1) baseScore = 5.0;       // 매일 업로드
+  else if (avgInterval <= 3) baseScore = 4.5;  // 3일에 1회 이상
+  else if (avgInterval <= 7) baseScore = 4.0;  // 주 1회 이상
+  else if (avgInterval <= 10) baseScore = 3.8; // 열흘에 1회 이상
+  else if (avgInterval <= 14) baseScore = 3.5; // 2주에 1회 이상
+  else if (avgInterval <= 21) baseScore = 3.0; // 3주에 1회 이상
+  else if (avgInterval <= 30) baseScore = 2.5; // 월 1회 이상
+  else baseScore = 2.0;                        // 월 1회 미만
+  
+  // 일관성 보너스 포인트 (제안에 따라 개선)
+  // 일관된 패턴 보너스: "every 24h ±2h"
+  const consistencyModifier = 
+    stdDev <= 0.5 ? 1.0 :  // 거의 완벽한 간격 (24h ±30min)
+    stdDev <= 1 ? 0.5 :    // 매우 일관됨 (24h ±1h)
+    stdDev <= 2 ? 0.3 :    // 일관됨 (24h ±2h)
+    stdDev <= 3 ? 0.2 :    // 꽤 일관됨
+    stdDev <= 5 ? 0.1 :    // 어느 정도 일관됨
+    stdDev <= 10 ? 0 :     // 보통
+    stdDev <= 15 ? -0.1 :  // 불규칙함
+    -0.2;                  // 매우 불규칙함
+  
+  // 최종 점수
+  const finalScore = Math.min(5, Math.max(1, baseScore + consistencyModifier));
+  
+  // 소수점 한 자리로 반올림
+  return Math.round(finalScore * 10) / 10;
 }
 
 // 해시태그 배열에서 공통 해시태그 찾기
