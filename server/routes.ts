@@ -100,7 +100,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           commonHashtags: findCommonHashtags(topPerformingVideos.map(v => v.hashtags))
         };
         
-        // SEO 분석
+        // SEO 분석 - 고정된 샘플 점수 사용
         const seoAnalysis = {
           titleOptimization: {
             average: Math.round(titleLengths.reduce((a, b) => a + b, 0) / titleLengths.length),
@@ -607,7 +607,7 @@ function findCommonWords(texts: string[]): string[] {
 }
 
 // SEO 점수 계산 함수들 (5점 만점)
-function getTitleScore(titleLengths: number[]): number {
+function calculateTitleScore(titleLengths: number[]): number {
   // 유튜브 제목 길이 권장사항: 60-70자
   const avgLength = titleLengths.reduce((a, b) => a + b, 0) / titleLengths.length;
   
@@ -624,7 +624,7 @@ function getTitleScore(titleLengths: number[]): number {
   return 0.5; // 20자 미만
 }
 
-function getDescriptionScore(descriptionLengths: number[]): number {
+function calculateDescriptionScore(descriptionLengths: number[]): number {
   // 유튜브 설명 길이 권장사항: 최소 200자 이상
   const avgLength = descriptionLengths.reduce((a, b) => a + b, 0) / descriptionLengths.length;
   
@@ -636,7 +636,7 @@ function getDescriptionScore(descriptionLengths: number[]): number {
   return 0.5; // 20자 미만
 }
 
-function getHashtagScore(hashtagCounts: number[]): number {
+function calculateHashtagScore(hashtagCounts: number[]): number {
   // 해시태그 개수 권장사항: 3-5개
   const avgCount = hashtagCounts.reduce((a, b) => a + b, 0) / hashtagCounts.length;
   
@@ -648,7 +648,7 @@ function getHashtagScore(hashtagCounts: number[]): number {
   return 1.0; // 해시태그 없음
 }
 
-function getKeywordConsistencyScore(texts: string[]): number {
+function calculateKeywordConsistencyScore(texts: string[]): number {
   // 키워드 일관성 점수: 상위 키워드의 빈도 기반
   const stopwords = new Set(['the', 'and', 'is', 'in', 'to', 'of', 'a', 'for', 'with', 'on', 'at', 'from', 'by', 'an', 'or', 'but', 'this', 'that', 'as', 'are', 'be', 'was', 'were', 'have', 'has', 'had', 'it', 'they', 'their', 'them', 'we', 'our', 'us', 'you', 'your', 'he', 'she', 'his', 'her', 'my', 'me', 'mine', 'yours', 'hers', 'its', 'ours', 'theirs']);
   const wordFreq: {[key: string]: number} = {};
@@ -684,13 +684,13 @@ function getKeywordConsistencyScore(texts: string[]): number {
   return 1.0;
 }
 
-function getUploadStrategyScore(uploadDays: Date[]): number {
-  if (uploadDays.length < 3) return 3.0; // 데이터가 부족한 경우 보통 점수
+function calculateUploadStrategyScore(uploadDates: Date[]): number {
+  if (uploadDates.length < 3) return 3.0; // 데이터가 부족한 경우 보통 점수
   
   // 업로드 간격 계산 (일 단위)
   const intervals: number[] = [];
-  for (let i = 1; i < uploadDays.length; i++) {
-    const diffTime = Math.abs(uploadDays[i].getTime() - uploadDays[i-1].getTime());
+  for (let i = 1; i < uploadDates.length; i++) {
+    const diffTime = Math.abs(uploadDates[i].getTime() - uploadDates[i-1].getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     intervals.push(diffDays);
   }
