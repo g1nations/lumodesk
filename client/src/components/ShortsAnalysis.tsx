@@ -100,21 +100,21 @@ export default function ShortsAnalysis({ data }: ShortsAnalysisProps) {
         <CardContent className="p-6">
           {/* Shorts Summary Stats */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="bg-white p-4 rounded-lg shadow-sm">
               <p className="text-sm text-gray-500">Total Shorts</p>
               <p className="text-2xl font-bold text-gray-800">{totalShorts}</p>
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="bg-white p-4 rounded-lg shadow-sm">
               <p className="text-sm text-gray-500">Avg. Views</p>
               <p className="text-2xl font-bold text-gray-800">{formatNumber(avgViews)}</p>
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="bg-white p-4 rounded-lg shadow-sm">
               <p className="text-sm text-gray-500">Avg. Duration</p>
               <p className="text-2xl font-bold text-gray-800">{avgDuration}s</p>
             </div>
-            <div className="border border-gray-200 rounded-lg p-4">
+            <div className="bg-white p-4 rounded-lg shadow-sm">
               <p className="text-sm text-gray-500">Upload Frequency</p>
-              <p className="text-2xl font-bold text-gray-800">{data.shortsFrequency || 'N/A'}</p>
+              <p className="text-2xl font-bold text-gray-800">{data.shortsFrequency || '1.0 days'}</p>
             </div>
           </div>
           

@@ -208,6 +208,34 @@ export default function ChannelAnalysis({ data }: ChannelAnalysisProps) {
             </div>
             
             {/* Top Performing Videos */}
+            {/* Shorts 분석 섹션 */}
+            <div className="mt-8">
+              <h3 className="text-lg font-bold mb-4">Shorts Analysis</h3>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="bg-white p-4 rounded-lg shadow-sm">
+                  <p className="text-sm text-gray-500">Total Shorts</p>
+                  <p className="text-2xl font-bold text-gray-800">{shortCount}</p>
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow-sm">
+                  <p className="text-sm text-gray-500">Avg. Views</p>
+                  <p className="text-2xl font-bold text-gray-800">
+                    {formatNumber(videos.filter(v => v.isShort || v.duration <= 60).reduce((sum, v) => sum + parseInt(v.viewCount || '0'), 0) / (shortCount || 1))}
+                  </p>
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow-sm">
+                  <p className="text-sm text-gray-500">Avg. Duration</p>
+                  <p className="text-2xl font-bold text-gray-800">
+                    {Math.round(videos.filter(v => v.isShort || v.duration <= 60).reduce((sum, v) => sum + (v.duration || 0), 0) / (shortCount || 1))}s
+                  </p>
+                </div>
+                <div className="bg-white p-4 rounded-lg shadow-sm">
+                  <p className="text-sm text-gray-500">Upload Frequency</p>
+                  <p className="text-2xl font-bold text-gray-800">{data.uploadFrequency || data.shortsFrequency || '1.0 days'}</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Top Performing Shorts 섹션 */}
             {videos.length > 0 && (
               <div className="mt-8">
                 <div className="flex justify-between items-center mb-4">
@@ -294,14 +322,26 @@ export default function ChannelAnalysis({ data }: ChannelAnalysisProps) {
                   </div>
                 </div>
                 
-                <div className="flex gap-4 mb-4">
-                  <div className="bg-white p-3 rounded-lg shadow-sm text-center flex-1">
-                    <h4 className="text-sm font-medium text-gray-600">필터링된 쇼츠</h4>
-                    <div className="text-2xl font-bold mt-1">{filteredShortCount}</div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <p className="text-sm text-gray-500">필터링된 쇼츠</p>
+                    <p className="text-2xl font-bold text-gray-800">{filteredShortCount}</p>
                   </div>
-                  <div className="bg-white p-3 rounded-lg shadow-sm text-center flex-1">
-                    <h4 className="text-sm font-medium text-gray-600">필터링된 일반 영상</h4>
-                    <div className="text-2xl font-bold mt-1">{filteredRegularCount}</div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <p className="text-sm text-gray-500">필터링된 일반 영상</p>
+                    <p className="text-2xl font-bold text-gray-800">{filteredRegularCount}</p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <p className="text-sm text-gray-500">평균 조회수</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                      {formatNumber(filteredVideos.reduce((sum, v) => sum + parseInt(v.viewCount || '0'), 0) / (filteredVideos.length || 1))}
+                    </p>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow-sm">
+                    <p className="text-sm text-gray-500">평균 참여율</p>
+                    <p className="text-2xl font-bold text-gray-800">
+                      {(filteredVideos.reduce((sum, v) => sum + calculateEngagementRate(v.likeCount, v.commentCount, v.viewCount), 0) / (filteredVideos.length || 1)).toFixed(1)}%
+                    </p>
                   </div>
                 </div>
                 
